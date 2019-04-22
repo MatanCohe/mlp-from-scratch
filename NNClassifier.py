@@ -1,3 +1,5 @@
+import numpy as np
+
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
 
@@ -48,7 +50,10 @@ class Layer:
         :param activation_function: Pointer to activation function.
         :param activation_function_derivative: Pointer to the activation function derivative.
         """
-        pass
+        self.theta = weights_matrix
+        self.b = bias
+        self.activation = activation_function
+        self.activation_derivative = activation_function_derivative
 
     def forward(self, previous_layer_output):
         """Calculate the a value of the layer.
@@ -56,7 +61,11 @@ class Layer:
         :param previous_layer_output:
         :return: The a value.
         """
-        pass
+        a_prev = previous_layer_output
+        z = np.dot(self.theta, a_prev) + self.b
+        self.z, self.a = z, self.activation(z)
+
+        return self.a
 
     def backward(self, next_layer_weights, next_layer_delta):
         """Calculate the delta value of the layer.
