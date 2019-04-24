@@ -41,7 +41,7 @@ class Layer:
     backward for the back propagation step and weight update.
 
     """
-    def __init__(self, weights_matrix, bias, activation_function, activation_function_derivative):
+    def __init__(self, weights_matrix, bias, activation_function, activation_function_derivative, learning_rate):
         """Create a hidden layer.
 
         :param weights_matrix: A weight matrix where the ith jth entry is the weight from the ith neuron
@@ -54,6 +54,7 @@ class Layer:
         self.b = bias
         self.activation = activation_function
         self.activation_derivative = activation_function_derivative
+        self.alpha = learning_rate
 
     def forward(self, previous_layer_output):
         """Calculate the a value of the layer.
@@ -78,6 +79,10 @@ class Layer:
         self.delta = delta
         return delta
 
-    def weights_update(self):
+    def weights_update(self, previous_layer_output):
         """Update the layer weights and bias"""
-        pass
+        theta, b, delta, alpha = self.theta, self.b, self.delta, self.alpha
+        dc_dtheta = np.outer(previous_layer_output, delta).transpose()
+        new_theta = theta - alpha * dc_dtheta
+        new_b = b - alpha * delta
+        self.theta, self.b = new_theta, new_b

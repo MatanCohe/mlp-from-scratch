@@ -29,7 +29,8 @@ class LayerTest(unittest.TestCase):
         delta3 = (a3 - t) * sigmoid_derivative(z3)
         layer = Layer(weights_matrix=theta2, bias=b2,
                       activation_function=sigmoid_activation.f,
-                      activation_function_derivative=sigmoid_activation.derivative)
+                      activation_function_derivative=sigmoid_activation.derivative,
+                      learning_rate=alpha)
         cls.layer = layer
         (cls.x, cls.t, cls.theta2, cls.theta3,
          cls.b2, cls.b3, cls.z2, cls.z3,
@@ -48,6 +49,15 @@ class LayerTest(unittest.TestCase):
         expected_delta = np.array([[0.00198391], [0.00040429]])
         self.assertTrue(np.allclose(delta, expected_delta, rtol=0.0001))
 
+    def test_c_weight_update(self):
+        alpha = 0.01
+        expected_theta2 = np.array([[0.09998016, 0.29992064, 0.4999008],
+                                    [0.19999596, 0.39998383, 0.59997979]])
+        a = self.x
+        layer = self.layer
+        layer.weights_update(a)
+        new_theta2 = layer.theta
+        self.assertTrue(np.allclose(expected_theta2, new_theta2))
 
 if __name__ == '__main__':
     unittest.main()
