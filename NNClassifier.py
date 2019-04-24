@@ -74,7 +74,9 @@ class Layer:
         :param next_layer_delta:
         :return: current layer delta.
         """
-        pass
+        delta = np.dot(next_layer_weights.T, next_layer_delta) * self.activation_derivative(self.z)
+        self.delta = delta
+        return delta
 
     def weights_update(self):
         """Update the layer weights and bias"""
