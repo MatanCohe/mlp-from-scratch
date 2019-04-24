@@ -50,7 +50,6 @@ class LayerTest(unittest.TestCase):
         self.assertTrue(np.allclose(delta, expected_delta, rtol=0.0001))
 
     def test_c_weight_update(self):
-        alpha = 0.01
         expected_theta2 = np.array([[0.09998016, 0.29992064, 0.4999008],
                                     [0.19999596, 0.39998383, 0.59997979]])
         a = self.x
