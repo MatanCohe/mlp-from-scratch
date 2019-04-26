@@ -3,29 +3,48 @@ import numpy as np
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
 
-    def __init__(self, layers_sizes, learning_rate, loss_function):
+    def __init__(self, layers, learning_rate, loss_function):
         """Create a neural network classifier.
 
-        :param layers_sizes: An array of integers.
+        :param layers: List or tuple of layers.
         :param learning_rate: scalar.
         :param loss_function: String.
 
         :return: A neural network with the specified requirements.
         """
-        pass
+        self.layers, self.alpha = layers, learning_rate
+        self.loss = loss_function
 
     def train(self, x, y):
         """Train the classifier.
 
         Train the classifier over the examples from x and labels for y.
+        self.loss_function = loss_function
         The ith example in x should match the ith label in y when iterating over them.
 
         :param x: Training examples.
         :param y: Labels.
         :return: Trained classifier over the given data.
         """
-        pass
-
+        for row, label in zip(x, y):
+            label = label.reshape((len(label), 1))
+            a = row.reshape(len(row), 1)
+            for layer in self.layers:
+                a = layer.forward(a)
+            if self.loss == 'mse':
+                diff = (a - label)
+                delta =  diff * layer.activation_derivative(layer.z)
+                layer.delta = delta
+            else:
+                raise ValueError('loss function not implemented')
+            theta = layer.theta
+            for layer in reversed(self.layers[:-1]):
+                delta, theta = layer.backward(theta, delta), layer.theta
+            a = x.transpose()
+            for layer in self.layers:
+                layer.weights_update(a)
+                a = layer.a
+        return self
     def predict(self, x):
         """Make prediction for x.
 

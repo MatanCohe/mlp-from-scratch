@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 
 from NNClassifier import Layer
+from NNClassifier import NeuralNetworkClassifier
 from functions import sigmoid_activation
 
 
@@ -57,6 +58,41 @@ class LayerTest(unittest.TestCase):
         layer.weights_update(a)
         new_theta2 = layer.theta
         self.assertTrue(np.allclose(expected_theta2, new_theta2))
+
+
+class NNClassifierTest(unittest.TestCase):
+
+    def test_a_train(self):
+
+        x = np.array([[1, 4, 5]]).transpose()
+        t = np.array([[.1, .05]]).transpose()
+        alpha = 0.01
+        sigmoid, sigmoid_derivative = sigmoid_activation
+        theta2 = np.array([[.1, .3, .5],
+                           [.2, .4, .6]])
+        b2 = np.array([[.5, .5]]).transpose()
+
+        theta3 = np.array([[.7, .9],
+                           [.8, .1]])
+        b3 = np.copy(b2)
+
+        layer1 = Layer(weights_matrix=theta2, bias=b2,
+                      activation_function=sigmoid,
+                      activation_function_derivative=sigmoid_derivative,
+                      learning_rate=alpha)
+        layer2 = Layer(weights_matrix=theta3, bias=b3,
+                       activation_function=sigmoid,
+                       activation_function_derivative=sigmoid_derivative,
+                       learning_rate=alpha)
+        clf = NeuralNetworkClassifier([layer1, layer2], alpha, 'mse')
+        clf.train(x=x.transpose(), y=t.transpose())
+        l2, l3 = clf.layers
+        expected_new_theta2 = np.array([[.1, .2999, .4999],
+                                        [.2, .4, .6]])
+        expected_new_theta3 = np.array([[.6992, .8992],
+                                        [.7988, .0988]])
+        self.assertTrue(np.allclose(l2.theta, expected_new_theta2, atol=0.0001))
+        self.assertTrue(np.allclose(l3.theta, expected_new_theta3, atol=0.0001))
 
 if __name__ == '__main__':
     unittest.main()
