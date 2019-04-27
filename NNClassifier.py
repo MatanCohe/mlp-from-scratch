@@ -26,15 +26,17 @@ class NeuralNetworkClassifier:
         :param y: Labels.
         :return: Trained classifier over the given data.
         """
+        train_error = []
         for row, label in zip(x, y):
             label = label.reshape((len(label), 1))
             a = row.reshape(len(row), 1)
             for layer in self.layers:
                 a = layer.forward(a)
             if self.loss == 'mse':
-                diff = (a - label)
-                delta =  diff * layer.activation_derivative(layer.z)
+                diff = a - label
+                delta =  (diff) * layer.activation_derivative(layer.z)
                 layer.delta = delta
+                train_error.append(np.square(diff).mean())
             else:
                 raise ValueError('loss function not implemented')
             theta = layer.theta
@@ -44,7 +46,7 @@ class NeuralNetworkClassifier:
             for layer in self.layers:
                 layer.weights_update(a)
                 a = layer.a
-        return self
+        return train_error
     def predict(self, x):
         """Make prediction for x.
 
