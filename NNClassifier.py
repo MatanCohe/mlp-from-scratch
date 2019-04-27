@@ -30,23 +30,39 @@ class NeuralNetworkClassifier:
         for row, label in zip(x, y):
             label = label.reshape((len(label), 1))
             a = row.reshape(len(row), 1)
-            for layer in self.layers:
-                a = layer.forward(a)
-            if self.loss == 'mse':
-                diff = a - label
-                delta =  (diff) * layer.activation_derivative(layer.z)
-                layer.delta = delta
-                train_error.append(np.square(diff).mean())
-            else:
-                raise ValueError('loss function not implemented')
+            a, layer = self.forward_propagation(a)
+            delta, err = self.calculate_loss(a, label, layer)
+            train_error.append(err)
             theta = layer.theta
-            for layer in reversed(self.layers[:-1]):
-                delta, theta = layer.backward(theta, delta), layer.theta
+            self.backpropagation(delta, theta)
             a = x.transpose()
-            for layer in self.layers:
-                layer.weights_update(a)
-                a = layer.a
+            self.update_network(a)
         return train_error
+
+    def update_network(self, a):
+        for layer in self.layers:
+            layer.weights_update(a)
+            a = layer.a
+
+    def backpropagation(self, delta, theta):
+        for layer in reversed(self.layers[:-1]):
+            delta, theta = layer.backward(theta, delta), layer.theta
+
+    def calculate_loss(self, a, label, layer):
+        if self.loss == 'mse':
+            diff = a - label
+            delta = (diff) * layer.activation_derivative(layer.z)
+            layer.delta = delta
+            err = np.square(diff).mean()
+        else:
+            raise ValueError('loss function not implemented')
+        return delta, err
+
+    def forward_propagation(self, a):
+        for layer in self.layers:
+            a = layer.forward(a)
+        return a, layer
+
     def predict(self, x):
         """Make prediction for x.
 
