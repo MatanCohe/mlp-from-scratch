@@ -1,4 +1,6 @@
+from copy import deepcopy
 import numpy as np
+
 
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
@@ -75,7 +77,6 @@ class NeuralNetworkClassifier:
 
 
     def check_gradient(self, x, y):
-        from copy import deepcopy
         x = x.transpose()
         y = y.transpose()
         layers_copy = deepcopy(self.layers)
