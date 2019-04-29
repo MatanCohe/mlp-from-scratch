@@ -92,7 +92,32 @@ class NNClassifierTest(unittest.TestCase):
                                         [.7988, .0988]])
         self.assertTrue(np.allclose(l2.theta, expected_new_theta2, atol=0.0001))
         self.assertTrue(np.allclose(l3.theta, expected_new_theta3, atol=0.0001))
-
+    #
+    # def test_validation(self):
+    #
+    #     alpha = 0.01
+    #     sigmoid, sigmoid_derivative = sigmoid_activation
+    #
+    #     # layer 1 parameters
+    #     theta1 = np.array([[20, -60],
+    #                        [-60, 20]])
+    #     b1 = np.array([[-30],
+    #                    [-30]])
+    #     layer1 = Layer(weights_matrix=theta1, bias=b1, activation_function=sigmoid,
+    #                    activation_function_derivative=sigmoid_derivative)
+    #
+    #     # layer 2 parameters
+    #     theta2 = np.array([[20],
+    #                        [20]])
+    #     b2 = np.array([-10])
+    #     layer2 = Layer(weights_matrix=theta2, bias=b2, activation_function=sigmoid,
+    #                    activation_function_derivative=sigmoid_derivative)
+    #
+    #     clf = NeuralNetworkClassifier([layer1, layer2], alpha, 'mse')
+    #     x = np.array([[1, 1]]).transpose()
+    #     y = np.array([[0]])
+    #     expected_mean_error = 0
+    #     self.assertTrue(expected_mean_error == clf.validate(x, y))
 
     def test_gradient(self):
         norm_x = np.random.ranf(3).reshape((3, 1))

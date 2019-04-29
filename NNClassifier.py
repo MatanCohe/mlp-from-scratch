@@ -17,7 +17,7 @@ class NeuralNetworkClassifier:
         self.layers, self.alpha = layers, learning_rate
         self.loss = loss_function
 
-    def train(self, x, y, number_of_epochs):
+    def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None):
         """Train the classifier.
 
         Train the classifier over the examples from x and labels for y.
@@ -29,6 +29,7 @@ class NeuralNetworkClassifier:
         :return: Trained classifier over the given data.
         """
         train_epochs_errors = []
+        validation_epochs_errors = []
         number_of_train_examples = x.shape[0]
         for epoch in range(number_of_epochs):
             curr_epoch_err = 0
@@ -43,7 +44,19 @@ class NeuralNetworkClassifier:
                 a = x.transpose()
                 self.update_network(a)
             train_epochs_errors.append(curr_epoch_err/number_of_train_examples)
+
+            # test the network on the validation set
+            if not validation_x is None:
+                validation_error = self.validate(validation_x, validation_y)
+                # validation_y_hat, layer_val = self.forward_propagation(validation_x)
+                #_, err_val = self.calculate_loss(validation_y_hat, validation_y, layer_val)
+                validation_epochs_errors.append(validation_error)
         return train_epochs_errors
+
+    def validate(self, x, y):
+        y_hat, layer = self.forward_propagation(x)
+        _, err = self.calculate_loss(y_hat, y, layer)
+        return err.mean()
 
     def update_network(self, a):
         for layer in self.layers:
@@ -57,22 +70,23 @@ class NeuralNetworkClassifier:
     def calculate_loss(self, a, label, layer):
         if self.loss == 'mse':
             diff = a - label
-            delta = (diff) * layer.activation_derivative(layer.z)
+            delta = diff * layer.activation_derivative(layer.z)   # TODO delta might be a matrix in case of batch
             layer.delta = delta
-            err = np.square(diff).mean()
+            err = np.square(diff).mean(axis=0)  # axis 0 means the average of every col
         else:
             raise ValueError('loss function not implemented')
         return delta, err
 
     def forward_propagation(self, a):
+        y_hat = a
         for layer in self.layers:
-            a = layer.forward(a)
-        return a, layer
+            y_hat = layer.forward(y_hat)
+        return y_hat, layer
 
     def predict(self, x):
         """Make prediction for x.
 
-        :param x:
+        :param x: each row in x represents one training example
         :return:
         """
         a, _ = self.forward_propagation(x.transpose())
@@ -142,7 +156,8 @@ class Layer:
     def forward(self, previous_layer_output):
         """Calculate the a value of the layer.
 
-        :param previous_layer_output:
+        :param previous_layer_output: col vector or matrix where number of rows is number of features,
+                number of cols is number f training examples
         :return: The a value.
         """
         a_prev = previous_layer_output
