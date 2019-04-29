@@ -69,7 +69,47 @@ class NeuralNetworkClassifier:
         :param x:
         :return:
         """
-        pass
+        a, _ = self.forward_propagation(x.transpose())
+        a = a.transpose()
+        return np.argmax(a, axis=1)
+
+
+    def check_gradient(self, x, y):
+        from copy import deepcopy
+        x = x.transpose()
+        layers_copy = deepcopy(self.layers)
+        epsilon = 10 ** -7
+        a, layer = self.forward_propagation(x)
+        delta, _ = self.calculate_loss(a, y, layer)
+        self.backpropagation(delta=delta, theta=layer.theta)
+        previous_layer_output = x
+        for layer in self.layers:
+            theta_copy = deepcopy(layer.theta)
+            real_theta_size = theta_copy.shape
+            delta = layer.delta
+            dc_dtheta = np.outer(previous_layer_output, delta).transpose()
+            previous_layer_output = layer.a
+            R, C = theta_copy.shape
+            for i in range(R):
+                for j in range(C):
+                    theta_plus = deepcopy(theta_copy)
+                    theta_plus[i, j] += epsilon
+                    layer.theta = theta_plus
+                    a_plus, l_plus = self.forward_propagation(x)
+                    _, err_plus = self.calculate_loss(a_plus, y, l_plus)
+                    theta_minus = deepcopy(theta_copy)
+                    theta_minus[i, j] -= epsilon
+                    layer.theta = theta_minus
+                    a_minus, l_minus = self.forward_propagation(x)
+                    _, err_minus = self.calculate_loss(a_minus, y, l_minus)
+                    limit = (err_plus - err_minus)/(2*epsilon)
+                    print(f'limit = {abs(limit)}')
+                    print(f'diff = {abs(dc_dtheta[i,j] - limit)}')
+                    #assert abs(dc_dtheta[i,j] - limit) < 10 ** -2
+                    layer.theta = theta_copy
+
+
+
 
 class Layer:
     """This class implements a single hidden layer of a Neural Network.
