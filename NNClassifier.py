@@ -41,7 +41,7 @@ class NeuralNetworkClassifier:
 
     def update_network(self, a):
         for layer in self.layers:
-            layer.weights_update(a)
+            layer.weights_update(a, self.alpha)
             a = layer.a
 
     def backpropagation(self, delta, theta):
@@ -118,7 +118,7 @@ class Layer:
     backward for the back propagation step and weight update.
 
     """
-    def __init__(self, weights_matrix, bias, activation_function, activation_function_derivative, learning_rate):
+    def __init__(self, weights_matrix, bias, activation_function, activation_function_derivative):
         """Create a hidden layer.
 
         :param weights_matrix: A weight matrix where the ith jth entry is the weight from the ith neuron
@@ -131,7 +131,6 @@ class Layer:
         self.b = bias
         self.activation = activation_function
         self.activation_derivative = activation_function_derivative
-        self.alpha = learning_rate
 
     def forward(self, previous_layer_output):
         """Calculate the a value of the layer.
@@ -156,9 +155,9 @@ class Layer:
         self.delta = delta
         return delta
 
-    def weights_update(self, previous_layer_output):
+    def weights_update(self, previous_layer_output, learning_rate):
         """Update the layer weights and bias"""
-        theta, b, delta, alpha = self.theta, self.b, self.delta, self.alpha
+        theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
         dc_dtheta = np.outer(previous_layer_output, delta).transpose()
         new_theta = theta - alpha * dc_dtheta
         new_b = b - alpha * delta

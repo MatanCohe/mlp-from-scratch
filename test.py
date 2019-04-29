@@ -28,10 +28,8 @@ class LayerTest(unittest.TestCase):
         a3 = sigmoid(z3)
 
         delta3 = (a3 - t) * sigmoid_derivative(z3)
-        layer = Layer(weights_matrix=theta2, bias=b2,
-                      activation_function=sigmoid_activation.f,
-                      activation_function_derivative=sigmoid_activation.derivative,
-                      learning_rate=alpha)
+        layer = Layer(weights_matrix=theta2, bias=b2, activation_function=sigmoid_activation.f,
+                      activation_function_derivative=sigmoid_activation.derivative)
         cls.layer = layer
         (cls.x, cls.t, cls.theta2, cls.theta3,
          cls.b2, cls.b3, cls.z2, cls.z3,
@@ -55,7 +53,7 @@ class LayerTest(unittest.TestCase):
                                     [0.19999596, 0.39998383, 0.59997979]])
         a = self.x
         layer = self.layer
-        layer.weights_update(a)
+        layer.weights_update(a, 0.01)
         new_theta2 = layer.theta
         self.assertTrue(np.allclose(expected_theta2, new_theta2))
 
@@ -76,14 +74,10 @@ class NNClassifierTest(unittest.TestCase):
                            [.8, .1]])
         b3 = np.copy(b2)
 
-        layer1 = Layer(weights_matrix=theta2, bias=b2,
-                       activation_function=sigmoid,
-                       activation_function_derivative=sigmoid_derivative,
-                       learning_rate=alpha)
-        layer2 = Layer(weights_matrix=theta3, bias=b3,
-                       activation_function=sigmoid,
-                       activation_function_derivative=sigmoid_derivative,
-                       learning_rate=alpha)
+        layer1 = Layer(weights_matrix=theta2, bias=b2, activation_function=sigmoid,
+                       activation_function_derivative=sigmoid_derivative)
+        layer2 = Layer(weights_matrix=theta3, bias=b3, activation_function=sigmoid,
+                       activation_function_derivative=sigmoid_derivative)
         clf = NeuralNetworkClassifier([layer1, layer2], alpha, 'mse')
         cls.x, cls.t, cls.clf = x, t, clf
 
@@ -109,18 +103,12 @@ class NNClassifierTest(unittest.TestCase):
         b2 = np.random.randn(5, 1)
         b3 = np.random.randn(3, 1)
         b4 = np.random.randn(2, 1)
-        l1 = Layer(weights_matrix=theta2, bias=b2,
-                   activation_function=sigmoid_activation.f,
-                   activation_function_derivative=sigmoid_activation.derivative,
-                   learning_rate=0.01)
-        l2 = Layer(weights_matrix=theta3, bias=b3,
-                   activation_function=sigmoid_activation.f,
-                   activation_function_derivative=sigmoid_activation.derivative,
-                   learning_rate=0.01)
-        l3 = Layer(weights_matrix=theta4, bias=b4,
-                   activation_function=sigmoid_activation.f,
-                   activation_function_derivative=sigmoid_activation.derivative,
-                   learning_rate=0.01)
+        l1 = Layer(weights_matrix=theta2, bias=b2, activation_function=sigmoid_activation.f,
+                   activation_function_derivative=sigmoid_activation.derivative)
+        l2 = Layer(weights_matrix=theta3, bias=b3, activation_function=sigmoid_activation.f,
+                   activation_function_derivative=sigmoid_activation.derivative)
+        l3 = Layer(weights_matrix=theta4, bias=b4, activation_function=sigmoid_activation.f,
+                   activation_function_derivative=sigmoid_activation.derivative)
         print(f'norm_x {norm_x}')
         clf = NeuralNetworkClassifier(layers=[l1, l2, l3], learning_rate=0.01, loss_function='mse')
         clf.check_gradient(norm_x.transpose(), norm_y.transpose())
