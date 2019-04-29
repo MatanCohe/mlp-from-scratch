@@ -17,7 +17,7 @@ class NeuralNetworkClassifier:
         self.layers, self.alpha = layers, learning_rate
         self.loss = loss_function
 
-    def train(self, x, y):
+    def train(self, x, y, number_of_epochs):
         """Train the classifier.
 
         Train the classifier over the examples from x and labels for y.
@@ -28,18 +28,22 @@ class NeuralNetworkClassifier:
         :param y: Labels.
         :return: Trained classifier over the given data.
         """
-        train_error = []
-        for row, label in zip(x, y):
-            label = label.reshape((len(label), 1))
-            a = row.reshape(len(row), 1)
-            a, layer = self.forward_propagation(a)
-            delta, err = self.calculate_loss(a, label, layer)
-            train_error.append(err)
-            theta = layer.theta
-            self.backpropagation(delta, theta)
-            a = x.transpose()
-            self.update_network(a)
-        return train_error
+        train_epochs_errors = []
+        number_of_train_examples = x.shape[0]
+        for epoch in range(number_of_epochs):
+            curr_epoch_err = 0
+            for row, label in zip(x, y):
+                label = label.reshape((len(label), 1))
+                a = row.reshape(len(row), 1)
+                a, layer = self.forward_propagation(a)
+                delta, err = self.calculate_loss(a, label, layer)
+                curr_epoch_err += err
+                theta = layer.theta
+                self.backpropagation(delta, theta)
+                a = x.transpose()
+                self.update_network(a)
+            train_epochs_errors.append(curr_epoch_err/number_of_train_examples)
+        return train_epochs_errors
 
     def update_network(self, a):
         for layer in self.layers:

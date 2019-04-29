@@ -84,7 +84,7 @@ class NNClassifierTest(unittest.TestCase):
     def test_a_train(self):
 
         x, t, clf = self.x, self.t, self.clf
-        clf.train(x=x.transpose(), y=t.transpose())
+        clf.train(x=x.transpose(), y=t.transpose(), number_of_epochs=1)
         l2, l3 = clf.layers
         expected_new_theta2 = np.array([[.1, .2999, .4999],
                                         [.2, .4, .6]])
