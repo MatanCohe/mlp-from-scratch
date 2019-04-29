@@ -109,7 +109,7 @@ class NNClassifierTest(unittest.TestCase):
                    activation_function_derivative=sigmoid_activation.derivative)
         l3 = Layer(weights_matrix=theta4, bias=b4, activation_function=sigmoid_activation.f,
                    activation_function_derivative=sigmoid_activation.derivative)
-        print(f'norm_x {norm_x}')
+        # print(f'norm_x {norm_x}')
         clf = NeuralNetworkClassifier(layers=[l1, l2, l3], learning_rate=0.01, loss_function='mse')
         clf.check_gradient(norm_x.transpose(), norm_y.transpose())
         # self.clf.check_gradient(norm_x.transpose(), norm_y.transpose())

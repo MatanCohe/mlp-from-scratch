@@ -77,8 +77,9 @@ class NeuralNetworkClassifier:
     def check_gradient(self, x, y):
         from copy import deepcopy
         x = x.transpose()
+        y = y.transpose()
         layers_copy = deepcopy(self.layers)
-        epsilon = 10 ** -7
+        epsilon = 10 ** -4
         a, layer = self.forward_propagation(x)
         delta, _ = self.calculate_loss(a, y, layer)
         self.backpropagation(delta=delta, theta=layer.theta)
@@ -103,9 +104,10 @@ class NeuralNetworkClassifier:
                     a_minus, l_minus = self.forward_propagation(x)
                     _, err_minus = self.calculate_loss(a_minus, y, l_minus)
                     limit = (err_plus - err_minus)/(2*epsilon)
-                    print(f'limit = {abs(limit)}')
-                    print(f'diff = {abs(dc_dtheta[i,j] - limit)}')
-                    #assert abs(dc_dtheta[i,j] - limit) < 10 ** -2
+                    # print(f'limit = {abs(limit)}')
+                    # print(f'diff = {abs(dc_dtheta[i,j] - limit)}')
+                    grad_diff = abs(dc_dtheta[i,j] - limit)
+                    assert grad_diff < 10 ** -7, f"Diff {grad_diff} is too big."
                     layer.theta = theta_copy
 
 
