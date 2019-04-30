@@ -46,12 +46,14 @@ class NeuralNetworkClassifier:
             train_epochs_errors.append(curr_epoch_err/number_of_train_examples)
 
             # test the network on the validation set
+            validation_epochs_errors = []
             if not validation_x is None:
                 validation_error = self.validate(validation_x, validation_y)
                 # validation_y_hat, layer_val = self.forward_propagation(validation_x)
                 #_, err_val = self.calculate_loss(validation_y_hat, validation_y, layer_val)
                 validation_epochs_errors.append(validation_error)
-        return train_epochs_errors
+
+        return train_epochs_errors, validation_epochs_errors
 
     def validate(self, x, y):
         y_hat, layer = self.forward_propagation(x)
@@ -126,7 +128,7 @@ class NeuralNetworkClassifier:
                     # print(f'limit = {abs(limit)}')
                     # print(f'diff = {abs(dc_dtheta[i,j] - limit)}')
                     grad_diff = abs(dc_dtheta[i,j] - limit)
-                    assert grad_diff < 10 ** -7, f"Diff {grad_diff} is too big."
+                    assert grad_diff < 10 ** -6, f"Diff {grad_diff} is too big."
                     layer.theta = theta_copy
 
 
