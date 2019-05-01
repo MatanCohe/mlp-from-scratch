@@ -3,7 +3,7 @@ import numpy as np
 
 from NNClassifier import Layer
 from NNClassifier import NeuralNetworkClassifier
-from functions import sigmoid_activation
+from functions import sigmoid_activation, tanh_activation
 
 
 class LayerTest(unittest.TestCase):
@@ -96,49 +96,58 @@ class NNClassifierTest(unittest.TestCase):
     def test_validation(self):
 
         alpha = 0.01
-        sigmoid, sigmoid_derivative = sigmoid_activation
+        tanh, tanh_derivative = tanh_activation
 
         # layer 1 parameters
-        theta1 = np.array([[20, -60],
-                           [-60, 20]])
-        b1 = np.array([[-30],
-                       [-30]])
-        layer1 = Layer(weights_matrix=theta1, bias=b1, activation_function=sigmoid,
-                       activation_function_derivative=sigmoid_derivative)
+        theta1 = np.array([[4, 4],
+                           [-3, -3]])
+        b1 = np.array([[-2],
+                       [5]])
+        layer1 = Layer(weights_matrix=theta1, bias=b1, activation_function=tanh,
+                       activation_function_derivative=tanh_derivative)
 
         # layer 2 parameters
-        theta2 = np.array([[20, 20],
-                           [20, 20]])
-        b2 = np.array([[-10],
-                      [-10]])
-        layer2 = Layer(weights_matrix=theta2, bias=b2, activation_function=sigmoid,
-                       activation_function_derivative=sigmoid_derivative)
+        theta2 = np.array([[5, 5],
+                           [5, 5]])
+        b2 = np.array([[-5],
+                      [-5]])
+        layer2 = Layer(weights_matrix=theta2, bias=b2, activation_function=tanh,
+                       activation_function_derivative=tanh_derivative)
 
         clf = NeuralNetworkClassifier([layer1, layer2], alpha, 'mse')
 
         # test 1 xor 1
-        x = np.array([[1, 1]]).transpose()
-        y = np.array([[0, 0]])
+        x = np.array([[0, 0]]).transpose()
+        y = np.array([[-1, -1]])
         expected_mean_error = 0
         err = clf.validate(x, y)
         #self.assertTrue(expected_mean_error == clf.validate(x, y))
-        self.assertTrue(np.allclose(err, expected_mean_error, atol=0.00000001))
+        self.assertTrue(np.allclose(err, expected_mean_error, atol=np.exp(-7)))
 
         # test 0 xor 0
-        x = np.array([[0, 0]]).transpose()
-        y = np.array([[0, 0]])
+        x = np.array([[1, 1]]).transpose()
+        y = np.array([[-1, -1]])
         expected_mean_error = 0
         err = clf.validate(x, y)
         #self.assertTrue(expected_mean_error == clf.validate(x, y))
-        self.assertTrue(np.allclose(err, expected_mean_error, atol=0.00000001))
+        self.assertTrue(np.allclose(err, expected_mean_error, atol=np.exp(-7)))
 
-        # # test 0 xor 1
-        # x = np.array([[0, 1]]).transpose()
-        # y = np.array([[0, 0]])
-        # expected_mean_error = 0
-        # err = clf.validate(x, y)
-        # #self.assertTrue(expected_mean_error == clf.validate(x, y))
-        # self.assertTrue(np.allclose(err, expected_mean_error, atol=0.00001))
+        # test 0 xor 1
+        x = np.array([[0, 1]]).transpose()
+        y = np.array([[1, 1]])
+        expected_mean_error = 0
+        err = clf.validate(x, y)
+        #self.assertTrue(expected_mean_error == clf.validate(x, y))
+        self.assertTrue(np.allclose(err, expected_mean_error, atol=np.exp(-7)))
+
+        # test 1 xor 0
+        x = np.array([[1, 0]]).transpose()
+        y = np.array([[1, 1]])
+        expected_mean_error = 0
+        err = clf.validate(x, y)
+        #self.assertTrue(expected_mean_error == clf.validate(x, y))
+        self.assertTrue(np.allclose(err, expected_mean_error, atol=np.exp(-7)))
+
 
     def test_gradient(self):
         norm_x = np.random.ranf(3).reshape((3, 1))

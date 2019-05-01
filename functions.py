@@ -28,6 +28,13 @@ def sigmoid_derivative(x):
     return sigm * (1. - sigm)
 
 
+def tanh(x):
+    tanh = np.divide(np.exp(x) - np.exp(-x), (np.exp(x) + np.exp(-x)))
+    return tanh
+
+def tanh_derivative(x):
+    deriv = 1 - np.power(tanh(x), 2)
+    return deriv
 
 def cross_entropy(X,y):
     """
@@ -73,3 +80,5 @@ relu_activation = activation_function(f=relu, derivative=relu_derivative)
 mse_loss = loss_function(f=mse, delta=delta_mse)
 
 cross_entropy_loss = loss_function(f=cross_entropy, delta=delta_cross_entropy)
+
+tanh_activation = activation_function(f=tanh, derivative=tanh_derivative)
