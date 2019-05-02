@@ -17,7 +17,7 @@ class NeuralNetworkClassifier:
         self.layers, self.alpha = layers, learning_rate
         self.loss = loss_function
 
-    def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None):
+    def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None, batch_size=1):
         """Train the classifier.
 
         Train the classifier over the examples from x and labels for y.
@@ -33,9 +33,11 @@ class NeuralNetworkClassifier:
         number_of_train_examples = x.shape[0]
         for epoch in range(number_of_epochs):
             curr_epoch_err = 0
-            for row, label in zip(x, y):
-                label = label.reshape((len(label), 1))
-                a = row.reshape(len(row), 1)
+            x_batches = np.array_split(x, number_of_train_examples/batch_size)
+            y_batches = np.array_split(y, number_of_train_examples/batch_size)
+            for x_batch, y_batch in zip(x_batches, y_batches):
+                a = x_batch.transpose()
+                label = y_batch.transpose()
                 a, layer = self.forward_propagation(a)
                 delta, err = self.calculate_loss(a, label, layer)
                 curr_epoch_err += err
@@ -72,7 +74,8 @@ class NeuralNetworkClassifier:
     def calculate_loss(self, a, label, layer):
         if self.loss == 'mse':
             diff = a - label
-            delta = diff * layer.activation_derivative(layer.z)   # TODO delta might be a matrix in case of batch
+            delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
+            delta = delta.reshape(len(delta), 1)
             layer.delta = delta
             err = np.square(diff).mean(axis=0)  # axis 0 means the average of every col
         else:
