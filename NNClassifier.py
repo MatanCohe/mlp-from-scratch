@@ -39,7 +39,9 @@ class NeuralNetworkClassifier:
                 a = x_batch.transpose()
                 label = y_batch.transpose()
                 a, layer = self.forward_propagation(a)
-                delta, err = self.calculate_loss(a, label, layer)
+                err = self.calculate_loss(a, label)
+                delta = self.calculate_delta(a, label, layer)
+                layer.delta = delta
                 curr_epoch_err += err
                 theta = layer.theta
                 self.backpropagation(delta, theta)
@@ -59,7 +61,7 @@ class NeuralNetworkClassifier:
 
     def validate(self, x, y):
         y_hat, layer = self.forward_propagation(x)
-        _, err = self.calculate_loss(y_hat, y, layer)
+        err = self.calculate_loss(y_hat, y)
         return err.mean()
 
     def update_network(self, a):
@@ -71,16 +73,23 @@ class NeuralNetworkClassifier:
         for layer in reversed(self.layers[:-1]):
             delta, theta = layer.backward(theta, delta), layer.theta
 
-    def calculate_loss(self, a, label, layer):
+    def calculate_loss(self, a, label):
         if self.loss == 'mse':
             diff = a - label
-            delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
-            delta = delta.reshape(len(delta), 1)
-            layer.delta = delta
             err = np.square(diff).mean(axis=0)  # axis 0 means the average of every col
         else:
             raise ValueError('loss function not implemented')
-        return delta, err
+        return err
+
+    def calculate_delta(self, a, label, layer):
+        diff = a - label
+        if self.loss == 'mse':
+            delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
+            delta = delta.reshape(len(delta), 1)
+            layer.delta = delta
+        else:
+            raise ValueError('delta for this loss function is not implemented')
+        return delta
 
     def forward_propagation(self, a):
         y_hat = a
@@ -105,7 +114,7 @@ class NeuralNetworkClassifier:
         layers_copy = deepcopy(self.layers)
         epsilon = 10 ** -4
         a, layer = self.forward_propagation(x)
-        delta, _ = self.calculate_loss(a, y, layer)
+        delta = self.calculate_delta(a, y, layer)
         self.backpropagation(delta=delta, theta=layer.theta)
         previous_layer_output = x
         for layer in self.layers:
@@ -121,12 +130,12 @@ class NeuralNetworkClassifier:
                     theta_plus[i, j] += epsilon
                     layer.theta = theta_plus
                     a_plus, l_plus = self.forward_propagation(x)
-                    _, err_plus = self.calculate_loss(a_plus, y, l_plus)
+                    err_plus = self.calculate_loss(a_plus, y)
                     theta_minus = deepcopy(theta_copy)
                     theta_minus[i, j] -= epsilon
                     layer.theta = theta_minus
                     a_minus, l_minus = self.forward_propagation(x)
-                    _, err_minus = self.calculate_loss(a_minus, y, l_minus)
+                    err_minus = self.calculate_loss(a_minus, y)
                     limit = (err_plus - err_minus)/(2*epsilon)
                     # print(f'limit = {abs(limit)}')
                     # print(f'diff = {abs(dc_dtheta[i,j] - limit)}')
