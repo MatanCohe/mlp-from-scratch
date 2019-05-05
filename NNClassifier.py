@@ -52,8 +52,6 @@ class NeuralNetworkClassifier:
             # test the network on the validation set
             if not validation_x is None:
                 validation_error = self.validate(validation_x, validation_y)
-                # validation_y_hat, layer_val = self.forward_propagation(validation_x)
-                #_, err_val = self.calculate_loss(validation_y_hat, validation_y, layer_val)
                 validation_epochs_errors.append(validation_error)
 
         return train_epochs_errors, validation_epochs_errors
@@ -73,9 +71,17 @@ class NeuralNetworkClassifier:
             delta, theta = layer.backward(theta, delta), layer.theta
 
     def calculate_loss(self, a, label):
+        """Calculate the loss value of a given prediction.
+            a and label is k x n matrices where n is the number of data points and k is the number of output neurons.
+        :param a: network output.
+        :param label: one hot encoded.
+        :return:
+        """
         if self.loss == 'mse':
             diff = a - label
             err = np.square(diff).mean(axis=0).mean()  # axis 0 means the mean of every col
+        elif self.loss == 'ce':
+            return sum(np.ma.log2(a[label > 0]))
         else:
             raise ValueError('loss function not implemented')
         return err
