@@ -50,7 +50,6 @@ class NeuralNetworkClassifier:
             train_epochs_errors.append(curr_epoch_err/number_of_train_examples)
 
             # test the network on the validation set
-            validation_epochs_errors = []
             if not validation_x is None:
                 validation_error = self.validate(validation_x, validation_y)
                 # validation_y_hat, layer_val = self.forward_propagation(validation_x)
