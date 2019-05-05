@@ -75,7 +75,7 @@ class NeuralNetworkClassifier:
     def calculate_loss(self, a, label):
         if self.loss == 'mse':
             diff = a - label
-            err = np.square(diff).mean(axis=0)  # axis 0 means the average of every col
+            err = np.square(diff).mean(axis=0).mean()  # axis 0 means the mean of every col
         else:
             raise ValueError('loss function not implemented')
         return err
