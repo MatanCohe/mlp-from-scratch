@@ -87,11 +87,21 @@ class NeuralNetworkClassifier:
         return err
 
     def calculate_delta(self, a, label, layer):
+        """Calculate delta values of a given prediction.
+
+            layer activation function must be softmax or sigmoid.
+        :param a:
+        :param label:
+        :param layer:
+        :return:
+        """
         diff = a - label
         if self.loss == 'mse':
             delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
             delta = delta.reshape(len(delta), 1)
             layer.delta = delta
+        elif self.loss == 'ce':
+            delta = diff
         else:
             raise ValueError('delta for this loss function is not implemented')
         return delta
