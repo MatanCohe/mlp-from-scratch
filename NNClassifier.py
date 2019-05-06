@@ -213,3 +213,26 @@ class Layer:
         new_theta = theta - alpha * dc_dtheta
         new_b = b - alpha * delta
         self.theta, self.b = new_theta, new_b
+
+class DropoutLayer:
+
+    def __init__(self, keep_prob):
+        """
+
+        :param input_size: The size of input to the dropout layer must be a scalar.
+        :param keep_prob:  A number in the range [0, 1].
+        """
+        self.keep_prob = keep_prob
+
+
+    def forward(self, previous_layer_output):
+        size = previous_layer_output.shape[0]
+        mask = np.random.rand(size, 1) < self.keep_prob
+        self.mask = mask
+        return previous_layer_output * mask
+
+    def backward(self, next_layer_weights, next_layer_delta):
+        return next_layer_delta * self.mask
+    # TODO: Do we need the weights update?
+    def weights_update(self, previous_layer_output, learning_rate):
+        pass
