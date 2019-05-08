@@ -28,18 +28,18 @@ folder_name = '../figures'
 
 
 def test(model):
+    #torch.no_grad()
+    model.eval()
     x = DEV
     # forward
     y_hat = model(x[:, 1:])
     y = (x[:, 0] - 1).to(torch.long)  # fix the classes since torch expects classes 0-9
-    # y_one_hot = np.zeros((y.shape[0], NUMBER_OF_LABELS))
-    # y_one_hot[np.arange(y.shape[0]), y.to(torch.int64)] = 1
 
     loss = loss_function(y_hat, y)
-    average_loss = np.divide(loss.item(), DEV.shape[1])
+    average_loss = np.divide(loss.item(), DEV.shape[0])
     pred = y_hat.argmax(dim=1)
-    accuracy = np.divide((y == pred).sum().data, DEV.shape[1])
-    return loss, accuracy
+    accuracy = np.divide((y == pred).sum().data, DEV.shape[0])
+    return average_loss, accuracy
 
 def train(model):
     batch_size = 32
@@ -48,7 +48,17 @@ def train(model):
     devs_loss = []
     devs_accuracy = []
     num_of_training_examples = TRAIN.shape[0]
+    learning_rate = 0.00001
+    lr_decay = 0.99
+    # # test on validation set
+    # validation_loss, validation_accuracy = test(model)
+    # devs_accuracy.append(validation_accuracy)
+    # devs_loss.append(validation_loss)
+    # print("validation loss is:", validation_loss.item(), "\tvalidation accuracy is:", validation_accuracy.item() * 100,
+    #       "%")
     for k in range(num_of_epochs):
+        model.train()
+        #model.zero_grad()
         epoch_correct_predictions = 0
         epoch_loss = 0
         for i in range(0, num_of_training_examples, batch_size):
@@ -65,7 +75,7 @@ def train(model):
             batch_correct_predictions = (y == pred).sum().data
             batch_accuracy = np.divide(batch_correct_predictions, float(y.shape[0])) * 100
             epoch_correct_predictions += batch_correct_predictions
-            print("epoch", k, ",batch", np.divide(i, batch_size), ",loss is:", batch_loss.item(), ",batch accuracy is:", batch_accuracy.item(), "%")
+            #print("epoch", k, ",batch", np.divide(i, batch_size), ",loss is:", batch_loss.item(), ",batch accuracy is:", batch_accuracy.item(), "%")
 
             model.zero_grad()
             batch_loss.backward()
@@ -82,6 +92,12 @@ def train(model):
         devs_accuracy.append(validation_accuracy)
         devs_loss.append(validation_loss)
 
+        # print
+        print("epoch", k, "\n", "train loss is:", epochs_loss[k], "\ttrain epoch accuracy is:",
+              epochs_accuracy[k].item()*100, "%")
+        print("validation loss is:", validation_loss.item(), "\tvalidation accuracy is:", validation_accuracy.item()*100, "%")
+
+        learning_rate = learning_rate * lr_decay
 
     # draw plots for train
     plt.plot(np.arange(0, len(epochs_loss), 1), epochs_loss, 'r')
@@ -91,10 +107,10 @@ def train(model):
     plt.savefig(folder_name + "/train_accuracy.png")
     plt.clf()
     # draw plots for validation
-    plt.plot(np.arange(0, len(devs_loss), 1), epochs_loss, 'r')
+    plt.plot(np.arange(0, len(devs_loss), 1), devs_loss, 'r')
     plt.savefig(folder_name + "/validation_loss.png")
     plt.clf()
-    plt.plot(np.arange(0, len(devs_accuracy), 1), epochs_accuracy, 'r')
+    plt.plot(np.arange(0, len(devs_accuracy), 1), devs_accuracy, 'r')
     plt.savefig(folder_name + "/validation_accuracy.png")
     plt.clf()
 
@@ -102,12 +118,14 @@ my_model = nn.Sequential(
     torch.nn.Linear(3072, 1024),
     torch.nn.ReLU(),
     torch.nn.Dropout(0.3),
+    torch.nn.Linear(1024, 1024),
+    torch.nn.ReLU(),
+    torch.nn.Dropout(0.3),
     torch.nn.Linear(1024, 10)
 )
 
 loss_function = torch.nn.CrossEntropyLoss(reduction='sum')
-learning_rate = 0.0001
-num_of_epochs = 40
+num_of_epochs = 30
 
 train(my_model)
 torch.save(my_model.state_dict(), 'model_file')
