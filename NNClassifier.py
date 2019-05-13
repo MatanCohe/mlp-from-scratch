@@ -54,6 +54,10 @@ class NeuralNetworkClassifier:
                 validation_error = self.validate(validation_x, validation_y)
                 validation_epochs_errors.append(validation_error)
 
+            # debug printing
+            print('epoch', epoch, ': train error', curr_epoch_err/number_of_train_examples, ', validation error: ', validation_error)
+            print('epoch', epoch, ': train error', curr_epoch_err/number_of_train_examples, ', validation error: ', validation_error)
+
         return train_epochs_errors, validation_epochs_errors
 
     def validate(self, x, y):

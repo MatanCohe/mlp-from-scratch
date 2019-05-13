@@ -33,6 +33,6 @@ def read_unlabeled_data(file_name):
         data_set.append(line)
     return np.array(data_set)
 
-DEV_SET = read_labeled_data('data\\validate.csv')
-TRAIN_SET = read_labeled_data('data\\train.csv')
-TEST_SET = read_unlabeled_data('data\\test.csv')
+# DEV_SET = read_labeled_data('data\\validate.csv')
+# TRAIN_SET = read_labeled_data('data\\train.csv')
+# TEST_SET = read_unlabeled_data('data\\test.csv')
