@@ -48,7 +48,7 @@ def train(model):
     devs_loss = []
     devs_accuracy = []
     num_of_training_examples = TRAIN.shape[0]
-    learning_rate = 0.00001
+    learning_rate = 0.00007
     lr_decay = 0.99
     # # test on validation set
     # validation_loss, validation_accuracy = test(model)
@@ -115,17 +115,14 @@ def train(model):
     plt.clf()
 
 my_model = nn.Sequential(
-    torch.nn.Linear(3072, 1024),
+    torch.nn.Linear(3072, 256),
     torch.nn.ReLU(),
-    torch.nn.Dropout(0.3),
-    torch.nn.Linear(1024, 1024),
-    torch.nn.ReLU(),
-    torch.nn.Dropout(0.3),
-    torch.nn.Linear(1024, 10)
+    torch.nn.Dropout(0.4),
+    torch.nn.Linear(256, 10)
 )
 
 loss_function = torch.nn.CrossEntropyLoss(reduction='sum')
-num_of_epochs = 30
+num_of_epochs = 200
 
 train(my_model)
 torch.save(my_model.state_dict(), 'model_file')
