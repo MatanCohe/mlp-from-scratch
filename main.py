@@ -6,7 +6,7 @@ from functions import my_softmax
 from utils import read_labeled_data
 import pandas as pd
 
-learning_rate = 0.0001
+learning_rate = 0.00001
 loss_func = 'ce'
 train_file = './data/train.csv'
 dev_file = './data/validate.csv'
@@ -14,7 +14,7 @@ number_of_epochs = 10
 batch_size = 32
 NUMBER_OF_LABELS = 10
 
-train_file = dev_file
+#train_file = dev_file
 
 
 def generate_weights(rows, cols):
@@ -23,17 +23,7 @@ def generate_weights(rows, cols):
 
 if __name__ == '__main__':
 
-    # read validation data
-    DEV = pd.read_csv(dev_file, header=None)
-    dev_x, dev_y = DEV.values[:, 1:], DEV.values[:,0]
-    #dev_y_one_hot = np.zeros((dev_y.shape[0], NUMBER_OF_LABELS))
-    #dev_y_one_hot[np.arange(dev_y.shape[0]), dev_y_one_hot.astype(np.int64)] = 1
-    #dev_y = dev_y_one_hot
-    dev_y = pd.get_dummies(dev_y).values
-    print('dev data was read!')
-
     # read train data
-    # x, y = read_labeled_data(train_file)
     TRAIN = pd.read_csv(train_file, header=None)
     # normalize train data
     mean = TRAIN.values[:, 1:].mean()
@@ -46,6 +36,15 @@ if __name__ == '__main__':
     y = pd.get_dummies(y).values
     print('train data was read!')
 
+    # read validation data
+    DEV = pd.read_csv(dev_file, header=None)
+    # choose the columns indexes we wish to change for normailzation
+    idx = np.arange(1, DEV.shape[1])
+    DEV[idx] = np.divide(DEV[idx] - mean, std)
+    dev_x = DEV.values[:, 1:]
+    dev_y = DEV.values[:, 0]
+    dev_y = pd.get_dummies(dev_y).values
+    print('dev data was read!')
 
     # create the model
     l1 = Layer(weights_matrix=generate_weights(256, 3072), bias=generate_weights(256, 1),
