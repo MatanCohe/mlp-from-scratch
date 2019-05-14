@@ -45,7 +45,7 @@ class NeuralNetworkClassifier:
                 curr_epoch_err += err
                 theta = layer.theta
                 self.backpropagation(delta, theta)
-                a = x.transpose()
+                a = x_batch.transpose()
                 self.update_network(a)
             train_epochs_errors.append(curr_epoch_err/number_of_train_examples)
 
@@ -85,7 +85,8 @@ class NeuralNetworkClassifier:
             diff = a - label
             err = np.square(diff).mean(axis=0).mean()  # axis 0 means the mean of every col
         elif self.loss == 'ce':
-            return sum(np.ma.log2(a[label > 0]))
+            return sum(-np.ma.log2(a[label > 0]))
+        #return -np.log2(a[label > 0])
         else:
             raise ValueError('loss function not implemented')
         return err
@@ -105,6 +106,8 @@ class NeuralNetworkClassifier:
             delta = delta.reshape(len(delta), 1)
             layer.delta = delta
         elif self.loss == 'ce':
+            #delta = np.sum(diff, axis=1)
+            # TODO TODO TODO
             delta = diff
         else:
             raise ValueError('delta for this loss function is not implemented')
@@ -194,7 +197,8 @@ class Layer:
         :return: The a value.
         """
         a_prev = previous_layer_output
-        z = np.dot(self.theta, a_prev) + self.b
+        z = np.dot(self.theta, a_prev)
+        z = z + self.b
         self.z, self.a = z, self.activation(z)
 
         return self.a
@@ -206,14 +210,18 @@ class Layer:
         :param next_layer_delta:
         :return: current layer delta.
         """
-        delta = np.dot(next_layer_weights.T, next_layer_delta) * self.activation_derivative(self.z)
+        delta = np.dot(next_layer_weights.T, next_layer_delta)
+        delta = delta * self.activation_derivative(self.z)
+        #delta = np.dot(delta, self.activation_derivative(self.z))
         self.delta = delta
         return delta
 
     def weights_update(self, previous_layer_output, learning_rate):
         """Update the layer weights and bias"""
         theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
-        dc_dtheta = np.outer(previous_layer_output, delta).transpose()
+        #dc_dtheta = np.outer(previous_layer_output, delta).transpose()
+        # TODO TODO TODO
+        dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
         new_theta = theta - alpha * dc_dtheta
         new_b = b - alpha * delta
         self.theta, self.b = new_theta, new_b
