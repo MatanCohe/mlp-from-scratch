@@ -29,10 +29,14 @@ class NeuralNetworkClassifier:
         :return: Trained classifier over the given data.
         """
         train_epochs_errors = []
-        validation_epochs_errors = []
+        train_epochs_acc = []
+        validation_errors = []
+        validation_acc = []
+        batch_correct_predictions = 0
         number_of_train_examples = x.shape[0]
         for epoch in range(number_of_epochs):
             curr_epoch_err = 0
+            epoch_correct_predictions = 0
             number_of_batches = number_of_train_examples / batch_size
             x_batches = np.array_split(x, number_of_batches)
             y_batches = np.array_split(y, number_of_batches)
@@ -40,6 +44,7 @@ class NeuralNetworkClassifier:
                 a = x_batch.transpose()
                 label = y_batch.transpose()
                 a, layer = self.forward_propagation(a)
+                pred = a.argmax(axis=0)
                 err = self.calculate_loss(a, label)
                 delta = self.calculate_delta(a, label, layer)
                 layer.delta = delta
@@ -48,23 +53,32 @@ class NeuralNetworkClassifier:
                 self.backpropagation(delta, theta)
                 a = x_batch.transpose()
                 self.update_network(a)
+
+                batch_correct_predictions = (y_batch.argmax(axis=1) == pred).sum()
+                # batch_accuracy = np.divide(batch_correct_predictions, float(y.shape[0])) * 100
+                epoch_correct_predictions += batch_correct_predictions
+
             train_epochs_errors.append(curr_epoch_err/number_of_train_examples)
+            train_epochs_acc.append(epoch_correct_predictions/number_of_train_examples)
 
             # test the network on the validation set
             if not validation_x is None:
-                validation_error = self.validate(validation_x.T, validation_y.T)
-                validation_epochs_errors.append(validation_error)
+                validation_error, validation_accuracy = self.validate(validation_x.T, validation_y.T)
+                validation_errors.append(np.divide(validation_error, validation_x.shape[0]))
+                validation_acc.append(validation_accuracy)
 
             # debug printing
-            print('epoch', epoch, ': train error', curr_epoch_err/number_of_train_examples, ', validation error: ', validation_error)
-            print('epoch', epoch, ': train error', curr_epoch_err/number_of_train_examples, ', validation error: ', validation_error)
+            print('epoch', epoch, ': train error:', train_epochs_errors[epoch], ', \ttrain accuracy: ', train_epochs_acc[epoch]*100, '%')
+            print('\t\t: validation error:', validation_errors[epoch], ', validation accuracy: ',  validation_acc[epoch]*100, '%')
 
-        return train_epochs_errors, validation_epochs_errors
+        return train_epochs_errors, validation_errors
 
     def validate(self, x, y):
         y_hat, layer = self.forward_propagation(x)
         err = self.calculate_loss(y_hat, y)
-        return err #TODO calculate_loss returns a scalar because of the np.sum, maybe we need to change it.
+        acc = (y.argmax(axis=0) == y_hat.argmax(axis=0)).sum()
+        acc = np.divide(acc, x.shape[1])
+        return err, acc #TODO calculate_loss returns a scalar because of the np.sum, maybe we need to change it.
 
     def update_network(self, a):
         for layer in self.layers:
@@ -86,7 +100,7 @@ class NeuralNetworkClassifier:
             diff = a - label
             err = np.square(diff).mean(axis=0).mean()  # axis 0 means the mean of every col
         elif self.loss == 'ce':
-            return sum(-np.ma.log2(a[label > 0]))
+            return sum(-np.log2(a[label > 0]))
         #return -np.log2(a[label > 0])
         else:
             raise ValueError('loss function not implemented')

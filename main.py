@@ -6,12 +6,12 @@ from functions import my_softmax
 from utils import read_labeled_data
 import pandas as pd
 
-learning_rate = 0.001
+learning_rate = 0.0001
 loss_func = 'ce'
 train_file = './data/train.csv'
 dev_file = './data/validate.csv'
 number_of_epochs = 10
-batch_size = 10
+batch_size = 32
 NUMBER_OF_LABELS = 10
 
 train_file = dev_file
