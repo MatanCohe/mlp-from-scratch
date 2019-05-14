@@ -103,8 +103,9 @@ class NeuralNetworkClassifier:
         """
         diff = a - label
         if self.loss == 'mse':
-            delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
-            delta = delta.reshape(len(delta), 1)
+            delta = diff * layer.activation_derivative(layer.z)
+            #delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
+            #delta = delta.reshape(len(delta), 1)
             layer.delta = delta
         elif self.loss == 'ce':
             #delta = np.sum(diff, axis=1)

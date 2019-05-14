@@ -2,6 +2,8 @@ import numpy as np
 from scipy.special import softmax
 from collections import namedtuple
 
+my_softmax = lambda x: softmax(x, axis=0)
+
 activation_function = namedtuple('activation_function', ['f', 'derivative'])
 
 loss_function = namedtuple('loss_function', ['f', 'delta'])

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from NNClassifier import NeuralNetworkClassifier, Layer, DropoutLayer
 from functions import relu_activation
-from functions import softmax
+from functions import my_softmax
 from utils import read_labeled_data
 import pandas as pd
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
                activation_function=relu_activation.f,
                activation_function_derivative=relu_activation.derivative)
     l2 = Layer(weights_matrix=np.random.rand(NUMBER_OF_LABELS, 256), bias=np.random.rand(NUMBER_OF_LABELS, 1),
-               activation_function=softmax,
+               activation_function=my_softmax,
                activation_function_derivative=None)
     network = NeuralNetworkClassifier(layers=[l1, l2],
                                       learning_rate=learning_rate,
