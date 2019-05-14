@@ -17,6 +17,10 @@ NUMBER_OF_LABELS = 10
 train_file = dev_file
 
 
+def generate_weights(rows, cols):
+    #np.random.rand(rows, cols)
+    return np.random.uniform(-0.5, 0.5, size=(rows, cols))
+
 if __name__ == '__main__':
 
     # read validation data
@@ -44,10 +48,10 @@ if __name__ == '__main__':
 
 
     # create the model
-    l1 = Layer(weights_matrix=np.random.rand(256, 3072), bias=np.random.rand(256, 1),
+    l1 = Layer(weights_matrix=generate_weights(256, 3072), bias=generate_weights(256, 1),
                activation_function=relu_activation.f,
                activation_function_derivative=relu_activation.derivative)
-    l2 = Layer(weights_matrix=np.random.rand(NUMBER_OF_LABELS, 256), bias=np.random.rand(NUMBER_OF_LABELS, 1),
+    l2 = Layer(weights_matrix=generate_weights(NUMBER_OF_LABELS, 256), bias=generate_weights(NUMBER_OF_LABELS, 1),
                activation_function=my_softmax,
                activation_function_derivative=None)
     network = NeuralNetworkClassifier(layers=[l1, l2],
