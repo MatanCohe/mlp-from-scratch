@@ -8,10 +8,10 @@ import pandas as pd
 
 learning_rate = 0.001
 loss_func = 'ce'
-train_file = 'data/train.csv'
-dev_file = 'data/validate.csv'
+train_file = './data/train.csv'
+dev_file = './data/validate.csv'
 number_of_epochs = 10
-batch_size = 32
+batch_size = 10
 NUMBER_OF_LABELS = 10
 
 train_file = dev_file

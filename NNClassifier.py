@@ -33,8 +33,9 @@ class NeuralNetworkClassifier:
         number_of_train_examples = x.shape[0]
         for epoch in range(number_of_epochs):
             curr_epoch_err = 0
-            x_batches = np.array_split(x, number_of_train_examples/batch_size)
-            y_batches = np.array_split(y, number_of_train_examples/batch_size)
+            number_of_batches = number_of_train_examples / batch_size
+            x_batches = np.array_split(x, number_of_batches)
+            y_batches = np.array_split(y, number_of_batches)
             for x_batch, y_batch in zip(x_batches, y_batches):
                 a = x_batch.transpose()
                 label = y_batch.transpose()
@@ -51,7 +52,7 @@ class NeuralNetworkClassifier:
 
             # test the network on the validation set
             if not validation_x is None:
-                validation_error = self.validate(validation_x, validation_y)
+                validation_error = self.validate(validation_x.T, validation_y.T)
                 validation_epochs_errors.append(validation_error)
 
             # debug printing
@@ -63,7 +64,7 @@ class NeuralNetworkClassifier:
     def validate(self, x, y):
         y_hat, layer = self.forward_propagation(x)
         err = self.calculate_loss(y_hat, y)
-        return err.mean()
+        return err #TODO calculate_loss returns a scalar because of the np.sum, maybe we need to change it.
 
     def update_network(self, a):
         for layer in self.layers:
@@ -223,7 +224,8 @@ class Layer:
         # TODO TODO TODO
         dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
         new_theta = theta - alpha * dc_dtheta
-        new_b = b - alpha * delta
+        b_prime = np.sum(alpha * delta, axis=1).reshape(b.shape)
+        new_b = b - b_prime
         self.theta, self.b = new_theta, new_b
 
 class DropoutLayer:
