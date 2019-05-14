@@ -10,7 +10,7 @@ learning_rate = 0.00001
 loss_func = 'ce'
 train_file = './data/train.csv'
 dev_file = './data/validate.csv'
-number_of_epochs = 10
+number_of_epochs = 50
 batch_size = 32
 NUMBER_OF_LABELS = 10
 
@@ -58,7 +58,7 @@ if __name__ == '__main__':
                                       loss_function=loss_func)
     # train
     print('about to train now...')
-    train_errors, validation_errors = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)
+    train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)
 
     # draw errors plot
     plt.plot(np.arange(0, len(train_errors), 1), train_errors, 'r')

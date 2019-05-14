@@ -71,7 +71,7 @@ class NeuralNetworkClassifier:
             print('epoch', epoch, ': train error:', train_epochs_errors[epoch], ', \ttrain accuracy: ', train_epochs_acc[epoch]*100, '%')
             print('\t\t: validation error:', validation_errors[epoch], ', validation accuracy: ',  validation_acc[epoch]*100, '%')
 
-        return train_epochs_errors, validation_errors
+        return train_epochs_errors, validation_errors, train_epochs_acc, validation_acc
 
     def validate(self, x, y):
         y_hat, layer = self.forward_propagation(x)
