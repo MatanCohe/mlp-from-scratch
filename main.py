@@ -13,9 +13,9 @@ dev_file = './data/validate.csv'
 number_of_epochs = 150
 batch_size = 20
 NUMBER_OF_LABELS = 10
-dropout_rate = 0
+dropout_rate = 0.4
 input_vector_dim = 3072
-regularization_lambda = 0.0001
+regularization_lambda = 0.0001 * 5
 
 #train_file = dev_file
 

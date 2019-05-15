@@ -36,13 +36,17 @@ class NeuralNetworkClassifier:
         validation_acc = []
         batch_correct_predictions = 0
         number_of_train_examples = x.shape[0]
+        train_data = list(zip(x, y))
         for epoch in range(number_of_epochs):
+            np.random.shuffle(train_data)
             curr_epoch_err = 0
             epoch_correct_predictions = 0
-            number_of_batches = number_of_train_examples / batch_size
-            x_batches = np.array_split(x, number_of_batches)
-            y_batches = np.array_split(y, number_of_batches)
-            for x_batch, y_batch in zip(x_batches, y_batches):
+            #number_of_batches = number_of_train_examples / batch_size
+            #x_batches = np.array_split(x, number_of_batches)
+            #y_batches = np.array_split(y, number_of_batches)
+
+            #for x_batch, y_batch in zip(x_batches, y_batches):
+            for x_batch, y_batch in self.split_to_batches(train_data, batch_size):
                 a = x_batch.transpose()
                 label = y_batch.transpose()
                 a, layer = self.forward_propagation(a, True)
@@ -74,6 +78,12 @@ class NeuralNetworkClassifier:
             print('\t\t: validation error:', validation_errors[epoch], ', validation accuracy: ',  validation_acc[epoch]*100, '%')
 
         return train_epochs_errors, validation_errors, train_epochs_acc, validation_acc
+
+    def split_to_batches(self, train_data, batch_size):
+        num_of_training_examples = len(train_data)
+        for i in range(0, num_of_training_examples, batch_size):
+            x, y = zip(*train_data[i: i+batch_size])
+            yield np.vstack(x), np.vstack(y)
 
     def validate(self, x, y):
         y_hat, layer = self.forward_propagation(x)
