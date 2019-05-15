@@ -5,9 +5,10 @@ import numpy as np
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
 
-    def __init__(self, layers, learning_rate, loss_function):
+    def __init__(self, layers, learning_rate, loss_function, l2_lambda=0):
         """Create a neural network classifier.
 
+        :param l2_lambda:
         :param layers: List or tuple of layers.
         :param learning_rate: scalar.
         :param loss_function: String.
@@ -16,6 +17,7 @@ class NeuralNetworkClassifier:
         """
         self.layers, self.alpha = layers, learning_rate
         self.loss = loss_function
+        self.l2_lambda = l2_lambda
 
     def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None, batch_size=1):
         """Train the classifier.
@@ -82,7 +84,7 @@ class NeuralNetworkClassifier:
 
     def update_network(self, a):
         for layer in self.layers:
-            layer.weights_update(a, self.alpha)
+            layer.weights_update(a, self.alpha, self.l2_lambda)
             a = layer.a
 
     def backpropagation(self, delta, theta):
@@ -122,8 +124,6 @@ class NeuralNetworkClassifier:
             #delta = delta.reshape(len(delta), 1)
             layer.delta = delta
         elif self.loss == 'ce':
-            #delta = np.sum(diff, axis=1)
-            # TODO TODO TODO
             delta = diff
         else:
             raise ValueError('delta for this loss function is not implemented')
@@ -240,11 +240,12 @@ class Layer:
         self.delta = delta
         return delta
 
-    def weights_update(self, previous_layer_output, learning_rate):
+    def weights_update(self, previous_layer_output, learning_rate, l2_lambda):
         """Update the layer weights and bias"""
         theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
         dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
-        new_theta = theta - alpha * dc_dtheta
+        # new_theta = theta - alpha * dc_dtheta
+        new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
         b_prime = np.sum(alpha * delta, axis=1).reshape(b.shape)
         new_b = b - b_prime
         self.theta, self.b = new_theta, new_b
