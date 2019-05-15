@@ -38,7 +38,7 @@ class LayerTest(unittest.TestCase):
     def test_a_forward(self):
         expected_output = np.array([[.9866, .9950]]).transpose()
         layer, a1 = self.layer, self.x
-        layer_output = layer.forward(previous_layer_output=a1)
+        layer_output = layer.forward(previous_layer_output=a1, is_training=)
         self.assertTrue(np.allclose(layer_output, expected_output, rtol=0.0001))
 
     def test_b_backward(self):

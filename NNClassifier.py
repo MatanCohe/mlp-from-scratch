@@ -43,7 +43,7 @@ class NeuralNetworkClassifier:
             for x_batch, y_batch in zip(x_batches, y_batches):
                 a = x_batch.transpose()
                 label = y_batch.transpose()
-                a, layer = self.forward_propagation(a)
+                a, layer = self.forward_propagation(a, True)
                 pred = a.argmax(axis=0)
                 err = self.calculate_loss(a, label)
                 delta = self.calculate_delta(a, label, layer)
@@ -129,10 +129,10 @@ class NeuralNetworkClassifier:
             raise ValueError('delta for this loss function is not implemented')
         return delta
 
-    def forward_propagation(self, a):
+    def forward_propagation(self, a, is_training=False):
         y_hat = a
         for layer in self.layers:
-            y_hat = layer.forward(y_hat)
+            y_hat = layer.forward(y_hat, is_training)
         return y_hat, layer
 
     def predict(self, x):
@@ -207,9 +207,10 @@ class Layer:
         self.activation_derivative = activation_function_derivative
         self.dropout_rate = dropout_rate
 
-    def forward(self, previous_layer_output):
+    def forward(self, previous_layer_output, is_training=False):
         """Calculate the a value of the layer.
 
+        :param is_training:
         :param previous_layer_output: col vector or matrix where number of rows is number of features,
                 number of cols is number f training examples
         :return: The a value.
@@ -218,7 +219,10 @@ class Layer:
         z = np.dot(self.theta, a_prev)
         z = z + self.b
         a = self.activation(z)
-        mask = np.random.rand(a.shape[0], 1) < (1 - self.dropout_rate)
+        if is_training:
+            mask = np.random.rand(a.shape[0], 1) < (1 - self.dropout_rate)
+        else:
+            mask = (1 - self.dropout_rate)
         a = a * mask
         self.z, self.a, self.mask = z, a, mask
         return self.a

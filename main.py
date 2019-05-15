@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     # draw errors plot
     plt.plot(np.arange(0, len(train_errors), 1), train_errors, 'r')
-    plt.plot(np.arange(0, len(train_errors), 1), validation_errors, 'r')
+    plt.plot(np.arange(0, len(train_errors), 1), validation_errors, 'b')
     #plt.savefig(folder_name + "/train_loss.png")
     #plt.clf()
     plt.show()
