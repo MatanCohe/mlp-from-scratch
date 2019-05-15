@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from NNClassifier import NeuralNetworkClassifier, Layer, DropoutLayer
+from NNClassifier import NeuralNetworkClassifier, Layer
 from functions import relu_activation
 from functions import my_softmax
 from utils import read_labeled_data
 import pandas as pd
 
-learning_rate = 0.00001
+learning_rate = 0.001
 loss_func = 'ce'
 train_file = './data/train.csv'
 dev_file = './data/validate.csv'
@@ -48,11 +48,9 @@ if __name__ == '__main__':
 
     # create the model
     l1 = Layer(weights_matrix=generate_weights(256, 3072), bias=generate_weights(256, 1),
-               activation_function=relu_activation.f,
-               activation_function_derivative=relu_activation.derivative)
+               activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
     l2 = Layer(weights_matrix=generate_weights(NUMBER_OF_LABELS, 256), bias=generate_weights(NUMBER_OF_LABELS, 1),
-               activation_function=my_softmax,
-               activation_function_derivative=None)
+               activation_function=my_softmax, activation_function_derivative=None)
     network = NeuralNetworkClassifier(layers=[l1, l2],
                                       learning_rate=learning_rate,
                                       loss_function=loss_func)

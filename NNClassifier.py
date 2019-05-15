@@ -191,9 +191,10 @@ class Layer:
     backward for the back propagation step and weight update.
 
     """
-    def __init__(self, weights_matrix, bias, activation_function, activation_function_derivative):
+    def __init__(self, weights_matrix, bias, activation_function, activation_function_derivative, dropout_rate=0):
         """Create a hidden layer.
 
+        :param dropout_rate:
         :param weights_matrix: A weight matrix where the ith jth entry is the weight from the ith neuron
         in the previous layer to the jth neuron in the current layer.
         :param bias: Vector for the layer bias
@@ -204,6 +205,7 @@ class Layer:
         self.b = bias
         self.activation = activation_function
         self.activation_derivative = activation_function_derivative
+        self.dropout_rate = dropout_rate
 
     def forward(self, previous_layer_output):
         """Calculate the a value of the layer.
@@ -215,8 +217,10 @@ class Layer:
         a_prev = previous_layer_output
         z = np.dot(self.theta, a_prev)
         z = z + self.b
-        self.z, self.a = z, self.activation(z)
-
+        a = self.activation(z)
+        mask = np.random.rand(a.shape[0], 1) < (1 - self.dropout_rate)
+        a = a * mask
+        self.z, self.a, self.mask = z, a, mask
         return self.a
 
     def backward(self, next_layer_weights, next_layer_delta):
@@ -227,7 +231,7 @@ class Layer:
         :return: current layer delta.
         """
         delta = np.dot(next_layer_weights.T, next_layer_delta)
-        delta = delta * self.activation_derivative(self.z)
+        delta = delta * self.mask * self.activation_derivative(self.z)
         #delta = np.dot(delta, self.activation_derivative(self.z))
         self.delta = delta
         return delta
@@ -235,33 +239,9 @@ class Layer:
     def weights_update(self, previous_layer_output, learning_rate):
         """Update the layer weights and bias"""
         theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
-        #dc_dtheta = np.outer(previous_layer_output, delta).transpose()
-        # TODO TODO TODO
         dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
         new_theta = theta - alpha * dc_dtheta
         b_prime = np.sum(alpha * delta, axis=1).reshape(b.shape)
         new_b = b - b_prime
         self.theta, self.b = new_theta, new_b
 
-class DropoutLayer:
-
-    def __init__(self, keep_prob):
-        """
-
-        :param input_size: The size of input to the dropout layer must be a scalar.
-        :param keep_prob:  A number in the range [0, 1].
-        """
-        self.keep_prob = keep_prob
-
-
-    def forward(self, previous_layer_output):
-        size = previous_layer_output.shape[0]
-        mask = np.random.rand(size, 1) < self.keep_prob
-        self.mask = mask
-        return previous_layer_output * mask
-
-    def backward(self, next_layer_weights, next_layer_delta):
-        return next_layer_delta * self.mask
-    # TODO: Do we need the weights update?
-    def weights_update(self, previous_layer_output, learning_rate):
-        pass
