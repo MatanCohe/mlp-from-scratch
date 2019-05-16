@@ -5,7 +5,7 @@ import numpy as np
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
 
-    def __init__(self, layers, learning_rate, loss_function, l2_lambda=0):
+    def __init__(self, layers, learning_rate, loss_function, l2_lambda=0, noise_type=None):
         """Create a neural network classifier.
 
         :param l2_lambda:
@@ -18,6 +18,7 @@ class NeuralNetworkClassifier:
         self.layers, self.alpha = layers, learning_rate
         self.loss = loss_function
         self.l2_lambda = l2_lambda
+        self.noise_type = noise_type
 
     def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None, batch_size=1):
         """Train the classifier.
@@ -41,12 +42,9 @@ class NeuralNetworkClassifier:
             np.random.shuffle(train_data)
             curr_epoch_err = 0
             epoch_correct_predictions = 0
-            #number_of_batches = number_of_train_examples / batch_size
-            #x_batches = np.array_split(x, number_of_batches)
-            #y_batches = np.array_split(y, number_of_batches)
-
-            #for x_batch, y_batch in zip(x_batches, y_batches):
             for x_batch, y_batch in self.split_to_batches(train_data, batch_size):
+                if self.noise_type:
+                    self.noise_data(x_batch)
                 a = x_batch.transpose()
                 label = y_batch.transpose()
                 a, layer = self.forward_propagation(a, True)
@@ -78,6 +76,10 @@ class NeuralNetworkClassifier:
             print('\t\t: validation error:', validation_errors[epoch], ', validation accuracy: ',  validation_acc[epoch]*100, '%')
 
         return train_epochs_errors, validation_errors, train_epochs_acc, validation_acc
+
+    def noise_data(self, x):
+        return x + np.random.normal(size=x.shape)
+
 
     def split_to_batches(self, train_data, batch_size):
         num_of_training_examples = len(train_data)
