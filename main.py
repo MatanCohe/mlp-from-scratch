@@ -15,6 +15,7 @@ learning_rate = 0.01
 loss_func = 'ce'
 train_file = './data/train.csv'
 dev_file = './data/validate.csv'
+test_file = './data/test.csv'
 figures_folder = './figures'
 number_of_epochs = 150
 batch_size = 20
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     std = TRAIN.values[:, 1:].std()
     standardize_data = lambda x: np.divide(x - mean, std)
 
-    x = standardize_data(TRAIN.values[:, 1:])
+    x = standardize_data(TRAIN.values[:, 1:]).astype(np.float64)
     y = TRAIN.values[:, 0] - 1
     y = pd.get_dummies(y).values
     print('train data was read!')
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     # read validation data
     DEV = pd.read_csv(dev_file, header=None)
 
-    dev_x = standardize_data(DEV.values[:, 1:])
+    dev_x = standardize_data(DEV.values[:, 1:]).astype(np.float64)
     dev_y = DEV.values[:, 0]
     dev_y = pd.get_dummies(dev_y).values
     print('dev data was read!')
@@ -61,6 +62,9 @@ if __name__ == '__main__':
     # train
     print('about to train now...')
     train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)
+
+    TEST = pd.read_csv(test_file, header=None)
+    test_x = TEST.values.astype(np.float64)
 
     # draw loss plot
     plot_file_prefix = datetime.now().strftime('%Y_%m_%d_%H_%M')
