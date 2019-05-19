@@ -64,8 +64,9 @@ if __name__ == '__main__':
     train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)
 
     TEST = pd.read_csv(test_file, header=None)
-    test_x = TEST.values.astype(np.float64)
-
+    test_x = standardize_data(TEST.values[:, 1:].astype(np.float64))
+    test_predict = network.predict(test_x) + 1
+    np.savetxt('./output.txt', np.array(test_predict, dtype=int), fmt='%d')
     # draw loss plot
     plot_file_prefix = datetime.now().strftime('%Y_%m_%d_%H_%M')
     plt.figure(1)
