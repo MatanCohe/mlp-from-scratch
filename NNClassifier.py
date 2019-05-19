@@ -56,7 +56,7 @@ class NeuralNetworkClassifier:
                 theta = layer.theta
                 self.backpropagation(delta, theta)
                 a = x_batch.transpose()
-                self.update_network(a)
+                self.update_network(a, x_batch.shape[0])
 
                 batch_correct_predictions = (y_batch.argmax(axis=1) == pred).sum()
                 # batch_accuracy = np.divide(batch_correct_predictions, float(y.shape[0])) * 100
@@ -94,9 +94,9 @@ class NeuralNetworkClassifier:
         acc = np.divide(acc, x.shape[1])
         return err, acc #TODO calculate_loss returns a scalar because of the np.sum, maybe we need to change it.
 
-    def update_network(self, a):
+    def update_network(self, a, batch_size):
         for layer in self.layers:
-            layer.weights_update(a, self.alpha, self.l2_lambda)
+            layer.weights_update(a, self.alpha, self.l2_lambda, batch_size)
             a = layer.a
 
     def backpropagation(self, delta, theta):
@@ -252,13 +252,15 @@ class Layer:
         self.delta = delta
         return delta
 
-    def weights_update(self, previous_layer_output, learning_rate, l2_lambda):
+    def weights_update(self, previous_layer_output, learning_rate, l2_lambda, batch_size):
         """Update the layer weights and bias"""
         theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
         dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
+        dc_dtheta = np.divide(1, batch_size) * dc_dtheta
         # new_theta = theta - alpha * dc_dtheta
         new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
-        b_prime = np.sum(alpha * delta, axis=1).reshape(b.shape)
-        new_b = b - b_prime
+        b_prime = np.sum(delta, axis=1).reshape(b.shape)
+        b_prime = b_prime * np.divide(1, batch_size)
+        new_b = b - alpha * b_prime
         self.theta, self.b = new_theta, new_b
 
