@@ -32,20 +32,17 @@ if __name__ == '__main__':
     # normalize train data
     mean = TRAIN.values[:, 1:].mean()
     std = TRAIN.values[:, 1:].std()
-    # choose the columns indexes we wish to change
-    idx = np.arange(1, TRAIN.shape[1])
-    TRAIN[idx] = np.divide(TRAIN[idx] - mean, std)
-    x = TRAIN.values[:, 1:]
+    standardize_data = lambda x: np.divide(x - mean, std)
+
+    x = standardize_data(TRAIN.values[:, 1:])
     y = TRAIN.values[:, 0] - 1
     y = pd.get_dummies(y).values
     print('train data was read!')
 
     # read validation data
     DEV = pd.read_csv(dev_file, header=None)
-    # choose the columns indexes we wish to change for normailzation
-    idx = np.arange(1, DEV.shape[1])
-    DEV[idx] = np.divide(DEV[idx] - mean, std)
-    dev_x = DEV.values[:, 1:]
+
+    dev_x = standardize_data(DEV.values[:, 1:])
     dev_y = DEV.values[:, 0]
     dev_y = pd.get_dummies(dev_y).values
     print('dev data was read!')
