@@ -1,5 +1,9 @@
+from datetime import datetime
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
+
 from NNClassifier import NeuralNetworkClassifier, Layer
 from functions import relu_activation
 from functions import my_softmax
@@ -11,6 +15,7 @@ learning_rate = 0.01
 loss_func = 'ce'
 train_file = './data/train.csv'
 dev_file = './data/validate.csv'
+figures_folder = './figures'
 number_of_epochs = 150
 batch_size = 20
 NUMBER_OF_LABELS = 10
@@ -58,15 +63,23 @@ if __name__ == '__main__':
     train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)
 
     # draw loss plot
+    plot_file_prefix = datetime.now().strftime('%Y_%m_%d_%H_%M')
     plt.figure(1)
-    plt.plot(np.arange(0, len(train_errors), 1), train_errors, 'r')
-    plt.plot(np.arange(0, len(train_errors), 1), validation_errors, 'b')
-    #plt.savefig(folder_name + "/train_loss.png")
-    #plt.clf()
-    #plt.show()
+    plt.plot(range(len(train_errors)), train_errors, 'r')
+    plt.plot(range(len(validation_errors)), validation_errors, 'b')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(['Train', 'Validation'])
+    loss_figure_path = os.path.join(figures_folder, f'{plot_file_prefix}_loss.png')
+    plt.savefig(loss_figure_path, bbox_inches='tight')
 
     # draw accuracy plot
     plt.figure(2)
-    plt.plot(np.arange(0, len(train_epochs_acc), 1), train_epochs_acc, 'r')
-    plt.plot(np.arange(0, len(validation_acc), 1), validation_acc, 'b')
+    plt.plot(range(len(train_epochs_acc)), train_epochs_acc, 'r')
+    plt.plot(range(len(train_epochs_acc)), validation_acc, 'b')
+    plt.xlabel('Epoch')
+    plt.ylabel('accuracy in %')
+    plt.legend(['Train', 'Validation'])
+    acc_figure_path = os.path.join(figures_folder, f'{plot_file_prefix}_acc.png')
+    plt.savefig(acc_figure_path, bbox_inches='tight')
     plt.show()
