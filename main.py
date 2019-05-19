@@ -13,23 +13,23 @@ import pandas as pd
 
 learning_rate = 0.01
 loss_func = 'ce'
-train_file = './data/train.csv'
-dev_file = './data/validate.csv'
-test_file = './data/test.csv'
-figures_folder = './figures'
 number_of_epochs = 150
 batch_size = 20
 NUMBER_OF_LABELS = 10
 dropout_rate = 0.50
 input_vector_dim = 3072
 regularization_lambda = 0.0001 * 10 *5
-#train_file = dev_file
 
 
 def generate_weights(rows, cols):
     return np.random.uniform(-0.5, 0.5, size=(rows, cols))
 
 if __name__ == '__main__':
+    main_folder = os.path.dirname(os.path.abspath(__file__))
+    train_file = os.path.join(main_folder, 'data', 'train.csv')
+    dev_file = os.path.join(main_folder, 'data', 'validate.csv')
+    test_file = os.path.join(main_folder, 'data', 'test.csv')
+    figures_folder = os.path.join(main_folder, 'figures')
 
     np.random.seed(1234)
 
@@ -66,7 +66,8 @@ if __name__ == '__main__':
     TEST = pd.read_csv(test_file, header=None)
     test_x = standardize_data(TEST.values[:, 1:].astype(np.float64))
     test_predict = network.predict(test_x) + 1
-    np.savetxt('./output.txt', np.array(test_predict, dtype=int), fmt='%d')
+    np.savetxt(os.path.join(main_folder, 'output.txt'), np.array(test_predict, dtype=int), fmt='%d')
+
     # draw loss plot
     plot_file_prefix = datetime.now().strftime('%Y_%m_%d_%H_%M')
     plt.figure(1)
