@@ -72,8 +72,7 @@ class NeuralNetworkClassifier:
                 validation_acc.append(validation_accuracy)
 
             # debug printing
-            print('epoch', epoch, ': train error:', train_epochs_errors[epoch], ', \ttrain accuracy: ', train_epochs_acc[epoch]*100, '%')
-            print('\t\t: validation error:', validation_errors[epoch], ', validation accuracy: ',  validation_acc[epoch]*100, '%')
+            print(f'epoch: {epoch} train_error: {train_epochs_errors[epoch]:.3f} train_acc: {train_epochs_acc[epoch]*100:.3f}% val_error:, {validation_errors[epoch]:.3f} ,val_acc: {validation_acc[epoch]*100:.3f}%')
 
         return train_epochs_errors, validation_errors, train_epochs_acc, validation_acc
 
