@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 
 from NNClassifier import NeuralNetworkClassifier, Layer
 from functions import relu_activation
-from functions import my_softmax
-from utils import read_labeled_data
+from functions import column_wise_softmax
 
 import pandas as pd
 
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     l1 = Layer(weights_matrix=generate_weights(256, input_vector_dim), bias=generate_weights(256, 1),
                activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative,dropout_rate=dropout_rate)
     l2 = Layer(weights_matrix=generate_weights(NUMBER_OF_LABELS, 256), bias=generate_weights(NUMBER_OF_LABELS, 1),
-               activation_function=my_softmax, activation_function_derivative=None)
+               activation_function=column_wise_softmax, activation_function_derivative=None)
     network = NeuralNetworkClassifier(layers=[l1, l2], learning_rate=learning_rate, loss_function=loss_func, l2_lambda=regularization_lambda, noise_type='gauss')
     # train
     print('about to train now...')
