@@ -77,28 +77,48 @@ class NeuralNetworkClassifier:
         return train_epochs_errors, validation_errors, train_epochs_acc, validation_acc
 
     def noise_data(self, x):
+        """Add gaussian noise to x"""
         return x + np.random.normal(size=x.shape)
 
 
     def split_to_batches(self, train_data, batch_size):
+        """Split the train data into batches of batch_size
+
+        :param train_data:
+        :param batch_size:
+        :return:
+        """
         num_of_training_examples = len(train_data)
         for i in range(0, num_of_training_examples, batch_size):
             x, y = zip(*train_data[i: i+batch_size])
             yield np.vstack(x), np.vstack(y)
 
     def validate(self, x, y):
+        """Calculate the network error and accuracy over x"""
         y_hat, layer = self.forward_propagation(x)
         err = self.calculate_loss(y_hat, y)
         acc = (y.argmax(axis=0) == y_hat.argmax(axis=0)).sum()
         acc = np.divide(acc, x.shape[1])
-        return err, acc #TODO calculate_loss returns a scalar because of the np.sum, maybe we need to change it.
+        return err, acc
 
     def update_network(self, a, batch_size):
+        """Updates the network weights.
+
+        :param a: network output.
+        :param batch_size:
+        :return:
+        """
         for layer in self.layers:
             layer.weights_update(a, self.alpha, self.l2_lambda, batch_size)
             a = layer.a
 
     def backpropagation(self, delta, theta):
+        """propagate the error through the network.
+
+        :param delta: output delta.
+        :param theta: last layer weights.
+        :return: None
+        """
         for layer in reversed(self.layers[:-1]):
             delta, theta = layer.backward(theta, delta), layer.theta
 
@@ -107,14 +127,13 @@ class NeuralNetworkClassifier:
             a and label is k x n matrices where n is the number of data points and k is the number of output neurons.
         :param a: network output.
         :param label: one hot encoded.
-        :return:
+        :return: real number.
         """
         if self.loss == 'mse':
             diff = a - label
-            err = np.square(diff).mean(axis=0).mean()  # axis 0 means the mean of every col
+            err = np.square(diff).mean(axis=0).mean()
         elif self.loss == 'ce':
             return sum(-np.log2(a[label > 0]))
-        #return -np.log2(a[label > 0])
         else:
             raise ValueError('loss function not implemented')
         return err
@@ -123,16 +142,14 @@ class NeuralNetworkClassifier:
         """Calculate delta values of a given prediction.
 
             layer activation function must be softmax or sigmoid.
-        :param a:
-        :param label:
-        :param layer:
-        :return:
+        :param a: model prediction.
+        :param label: true label.
+        :param layer: the last layer of the model.
+        :return: numpy array the same shape as a
         """
         diff = a - label
         if self.loss == 'mse':
             delta = diff * layer.activation_derivative(layer.z)
-            #delta = np.sum(diff * layer.activation_derivative(layer.z), axis=1)
-            #delta = delta.reshape(len(delta), 1)
             layer.delta = delta
         elif self.loss == 'ce':
             delta = diff
@@ -141,6 +158,13 @@ class NeuralNetworkClassifier:
         return delta
 
     def forward_propagation(self, a, is_training=False):
+        """Forward the examples through the network.
+
+        :param a: Batch of examples shape=(num_of_features, num_of_examples)
+        :param is_training: A flag indicates in what mode the function has been called.
+        :return: y_hat - the prediction of the model.
+        :return: layer - the last layer of the network.
+        """
         y_hat = a
         for layer in self.layers:
             y_hat = layer.forward(y_hat, is_training)
@@ -150,7 +174,7 @@ class NeuralNetworkClassifier:
         """Make prediction for x.
 
         :param x: each row in x represents one training example
-        :return:
+        :return: vector of labels with a row for each example.
         """
         a, _ = self.forward_propagation(x.transpose())
         a = a.transpose()
@@ -158,6 +182,7 @@ class NeuralNetworkClassifier:
 
 
     def check_gradient(self, x, y):
+        """Check whether the gradient calculate through the network is valid"""
         x = x.transpose()
         y = y.transpose()
         layers_copy = deepcopy(self.layers)
@@ -186,8 +211,6 @@ class NeuralNetworkClassifier:
                     a_minus, l_minus = self.forward_propagation(x)
                     err_minus = self.calculate_loss(a_minus, y)
                     limit = (err_plus - err_minus)/(2*epsilon)
-                    # print(f'limit = {abs(limit)}')
-                    # print(f'diff = {abs(dc_dtheta[i,j] - limit)}')
                     grad_diff = abs(dc_dtheta[i,j] - limit)
                     assert grad_diff < 10 ** -6, f"Diff {grad_diff} is too big."
                     layer.theta = theta_copy
@@ -247,7 +270,6 @@ class Layer:
         """
         delta = np.dot(next_layer_weights.T, next_layer_delta)
         delta = delta * self.mask * self.activation_derivative(self.z)
-        #delta = np.dot(delta, self.activation_derivative(self.z))
         self.delta = delta
         return delta
 
@@ -256,7 +278,6 @@ class Layer:
         theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
         dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
         dc_dtheta = np.divide(1, batch_size) * dc_dtheta
-        # new_theta = theta - alpha * dc_dtheta
         new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
         b_prime = np.sum(delta, axis=1).reshape(b.shape)
         b_prime = b_prime * np.divide(1, batch_size)
