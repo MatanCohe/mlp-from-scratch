@@ -38,41 +38,6 @@ def tanh_derivative(x):
     deriv = 1 - np.power(tanh(x), 2)
     return deriv
 
-def cross_entropy(X,y):
-    """
-    X is the output from fully connected layer (num_examples x num_classes)
-    y is labels (num_examples x 1)
-    	Note that y is not one-hot encoded vector.
-    	It can be computed as y.argmax(axis=1) from one-hot encoded vectors of labels if required.
-    """
-    m = y.shape[0]
-    p = softmax(X)
-    # We use multidimensional array indexing to extract
-    # softmax probability of the correct label for each sample.
-    # Refer to https://docs.scipy.org/doc/numpy/user/basics.indexing.html#indexing-multi-dimensional-arrays for understanding multidimensional array indexing.
-    log_likelihood = -np.log(p[range(m),y])
-    loss = np.sum(log_likelihood) / m
-    return loss
-
-def delta_cross_entropy(X,y):
-    """
-    X is the output from fully connected layer (num_examples x num_classes)
-    y is labels (num_examples x 1)
-    	Note that y is not one-hot encoded vector.
-    	It can be computed as y.argmax(axis=1) from one-hot encoded vectors of labels if required.
-    """
-    m = y.shape[0]
-    grad = softmax(X)
-    grad[range(m),y] -= 1
-    grad = grad/m
-    return grad
-
-def mse(x, y):
-    return 0.5 * np.square(x - y).mean()
-
-def delta_mse(x, y):
-    return x - y
-
 
 
 sigmoid_activation = activation_function(f=sigmoid, derivative=sigmoid_derivative)
