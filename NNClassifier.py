@@ -284,3 +284,56 @@ class Layer:
         new_b = b - alpha * b_prime
         self.theta, self.b = new_theta, new_b
 
+
+class CnnLayer:
+
+    def __init__(self, in_channels, out_channels, kernal_size, pad, stride, activation_function, activation_function_derivative):
+        r, s = kernal_size
+        self.kernals = np.random.uniform(-0.5, 0.5, size=(out_channels, in_channels, r, s))
+        # TODO: confirm the right size of the bias.
+        self.bias = np.random.uniform(-0.5, 0.5, size=(in_channels*r*s, 1))
+        self.pad = pad
+        self.stride = stride
+        self.activation = activation_function
+        self.activation_derivative = activation_function_derivative
+        self.cache = None
+
+
+    def forward(self, previous_layer_output):
+        n, c, h, w = previous_layer_output.shape
+        k, _, r, s = self.kernals.shape
+        assert (h-r + 2*self.pad) % self.stride == 0
+        assert (w-s + 2*self.pad) % self.stride == 0
+
+        new_h = (h-r + 2*self.pad) / self.stride + 1
+        new_w = (w-s + 2*self.pad) / self.stride + 1
+        from cs231n.im2col import im2col_indices, col2im_indices
+        input_as_cols = im2col_indices(previous_layer_output, r, s, self.pad, self.stride)
+        flat_kernals = self.kernals.reshape((k, -1))
+
+        res = np.matmul(flat_kernals, input_as_cols) + self.bias
+
+        res = res.reshape(k, new_h, new_w, n)
+
+        res = res.transpose(3, 0, 1, 2)
+
+        self.cache = (previous_layer_output, input_as_cols)
+
+        return res
+
+    def backward(self, delta):
+        x, x_as_cols = self.cache
+
+        db = np.sum(delta, axis=(0, 2, 3))
+        k, _, r, s = self.kernals.shape
+        matrix_delta = delta.transpose(1, 2, 3, 0).reshape(k, -1)
+
+        dw = np.matmul(matrix_delta, x_as_cols.T).reshape(self.kernals.shape)
+
+        dx_cols = np.matmul(self.kernals.reshape(k, -1).T, matrix_delta)
+        dx = col2im_indices(dx_cols, x.shape, r, s, self.pad, self.stride)
+
+        self.db, self.dw, self.dx = db, dw, dx
+
+        return dx
+

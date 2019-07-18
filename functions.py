@@ -44,8 +44,5 @@ sigmoid_activation = activation_function(f=sigmoid, derivative=sigmoid_derivativ
 
 relu_activation = activation_function(f=relu, derivative=relu_derivative)
 
-mse_loss = loss_function(f=mse, delta=delta_mse)
-
-cross_entropy_loss = loss_function(f=cross_entropy, delta=delta_cross_entropy)
 
 tanh_activation = activation_function(f=tanh, derivative=tanh_derivative)
