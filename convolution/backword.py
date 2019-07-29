@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def backward_conv(x, dout, kernal):
+def backward_conv2d(x, dout, kernal):
     """
     Calculate the gradient dx, dw, db.
     
