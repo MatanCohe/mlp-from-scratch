@@ -3,26 +3,26 @@ import numpy as np
 
 from convolution import convolution
 
-def backward_conv2d(x, dout, kernal):
+def backward_conv2d(x, dout, kernel):
     """
     Calculate the gradient dx, dw, db.
     
     x - pervious layer input.
     dout - error.
-    kernal...
+    kernel...
     returns:
         dx - current x error.
-        dw - kernal error.
+        dw - kernel error.
         db - bias error.
     """
     assert x.shape == dout.shape
-    assert x.ndim == kernal.ndim
-    flipped_kernal = np.flipud(np.fliplr(kernal))
-    dx = convolution.conv2d(dout, flipped_kernal)
+    assert x.ndim == kernel.ndim
+    flipped_kernel = np.flipud(np.fliplr(kernel))
+    dx = convolution.conv2d(dout, flipped_kernel)
     db = dout.sum()
     h, w = dout.shape
-    k_h, k_w = kernal.shape
-    dw = np.zeros_like(kernal)
+    k_h, k_w = kernel.shape
+    dw = np.zeros_like(kernel)
     p = int(np.floor(np.divide(k_h, 2)))
     q = int(np.floor(np.divide(k_w, 2)))
     padded_x = np.pad(x, ((p, p), (q, q)), mode='constant')

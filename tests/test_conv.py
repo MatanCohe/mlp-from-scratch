@@ -26,25 +26,25 @@ from convolution import convolution, backword
                    [4, 5, 6],
                    [7, 8, 9]]),
          np.ones((3, 3)))
-def test_conv(x, kernal):
-    assert np.allclose(convolution.conv2d(x, kernal), correlate2d(x, kernal, mode='same'))
+def test_conv(x, kernel):
+    assert np.allclose(convolution.conv2d(x, kernel), correlate2d(x, kernel, mode='same'))
     
 def test_nconv(sample_data):
     new_x = np.expand_dims(sample_data, axis=0)
-    kernal = np.ones((1, 3, 3, 3))
-    expected, mem = fast_layers.conv_forward_im2col(new_x, kernal, np.array([0]), {'pad': 1, 'stride': 1})
-    res = convolution.conv4d(new_x, kernal)
+    kernel = np.ones((1, 3, 3, 3))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel)
     assert np.allclose(res, expected)
 
 def test_back_conv(sample_data):
     new_x = np.expand_dims(sample_data, axis=0)
-    kernal = np.ones((1, 1, 3, 3))
+    kernel = np.ones((1, 1, 3, 3))
     out, cache = layers.conv_forward_naive(new_x[:, 0:1, :, :], 
-                                                kernal, np.array([0]), 
+                                                kernel, np.array([0]), 
                                                 {'pad': 1, 'stride': 1})
      
     expected_dx, expected_dw, expected_db = layers.conv_backward_naive(np.ones((1, 1, 32, 32)), cache)
-    dx, dw, db = backword.backward_conv2d(new_x[0, 0, :, :], np.ones((32, 32)), kernal[0, 0, :, :])
+    dx, dw, db = backword.backward_conv2d(new_x[0, 0, :, :], np.ones((32, 32)), kernel[0, 0, :, :])
     assert np.allclose(db, expected_db)
     assert np.allclose(dw, expected_dw)
     assert np.allclose(dx, expected_dx)
