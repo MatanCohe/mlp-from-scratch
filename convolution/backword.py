@@ -1,6 +1,8 @@
 import numpy as np
 
 
+from convolution import convolution
+
 def backward_conv2d(x, dout, kernal):
     """
     Calculate the gradient dx, dw, db.
@@ -16,7 +18,7 @@ def backward_conv2d(x, dout, kernal):
     assert x.shape == dout.shape
     assert x.ndim == kernal.ndim
     flipped_kernal = np.flipud(np.fliplr(kernal))
-    dx = conv2d(dout, flipped_kernal)
+    dx = convolution.conv2d(dout, flipped_kernal)
     db = dout.sum()
     h, w = dout.shape
     k_h, k_w = kernal.shape
