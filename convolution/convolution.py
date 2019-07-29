@@ -25,3 +25,24 @@ def conv3d(x, kernal):
         accum.append(conv2d(c_x, c_k))
     res = np.stack(accum, axis=0).sum(axis=0)
     return res
+
+
+
+def conv4d(x, seq_kernals):
+    assert x.ndim == seq_kernals.ndim
+    accum = list()
+    for example in x:
+        feature_maps = list()
+        for kernal in seq_kernals:
+            feature_maps.append(conv3d(example, kernal))
+        if len(feature_maps) < 2:
+            accum.append(np.array(feature_maps))
+        else:
+            accum.append(np.concatenate(feature_maps, axis=0))
+    if len(accum) < 2:
+        out = np.array(accum)
+    else:
+        out = np.concatenate(accum, axis=0)
+    assert out.shape[0] == x.shape[0]
+    return out
+        
