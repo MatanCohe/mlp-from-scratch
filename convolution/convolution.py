@@ -15,3 +15,13 @@ def conv2d(x, kernal):
             flat_window = window.reshape(-1, )
             out[i-p, j-q] = flat_window @ flat_kernal
     return out
+
+
+def conv3d(x, kernal):
+    assert x.ndim == kernal.ndim == 3
+    assert x.shape[0] == kernal.shape[0]
+    accum = list()
+    for dim, (c_x, c_k) in enumerate(zip(x, kernal)):
+        accum.append(conv2d(c_x, c_k))
+    res = np.stack(accum, axis=0).sum(axis=0)
+    return res
