@@ -5,16 +5,18 @@ from convolution import convolution
 
 def backward_conv2d(x, dout, kernel):
     """
-    Calculate the gradient dx, dw, db.
-    
-    x - pervious layer input.
-    dout - error.
-    kernel...
-    returns:
-        dx - current x error.
-        dw - kernel error.
-        db - bias error.
-    """
+    A naive implementation of the backward pass for a convolutional layer.
+
+    Inputs:
+    - x: Layer input
+    - dout: Upstream derivatives.
+    - kernel: Weight kernel.   
+
+    Returns a tuple of:
+    - dx: Gradient with respect to x
+    - dw: Gradient with respect to w
+    - db: Gradient with respect to b
+     """
     assert x.shape == dout.shape
     assert x.ndim == kernel.ndim
     flipped_kernel = np.flipud(np.fliplr(kernel))

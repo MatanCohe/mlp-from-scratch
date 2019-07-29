@@ -1,6 +1,17 @@
 import numpy as np
 
 def conv2d(x, kernel):
+    """
+    Computes two dimensional correlation between x and kernel.
+    The output is the same shape as x.
+    Input:
+    - x: Input data of shape (h, w)
+    - w: Filter weights of shape (k_h, k_w)
+    - b: Biases, of shape (F,)
+
+    Returns a tuple of:
+    - out: Output data.
+    """
     assert x.ndim == kernel.ndim == 2
     h, w = x.shape
     k_h, k_w = kernel.shape
