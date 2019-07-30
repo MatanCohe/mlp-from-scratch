@@ -66,3 +66,13 @@ def test_back_conv_end_to_end(sample_data):
     assert np.allclose(expected_dx, dx)
     assert np.allclose(expected_dw, dw)
     assert np.allclose(expected_db, db)
+    
+    batch = np.concatenate((new_x, new_x, new_x), axis=0)
+    out, cache = layers.conv_forward_naive(batch, kernel, np.array([0]), 
+                                           {'pad': 1, 'stride': 1})
+    expected_dx, expected_dw, expected_db = layers.conv_backward_naive(np.ones((3, 1, 32, 32)), cache)
+    dx, dw, db = backword.backward_conv5d(batch, np.ones((3, 1, 32, 32)), kernel)
+    assert np.allclose(expected_dx, dx)
+    assert np.allclose(expected_dw, dw)
+    assert np.allclose(expected_db, db)
+    
