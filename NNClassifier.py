@@ -54,7 +54,7 @@ class NeuralNetworkClassifier:
                 curr_epoch_err += err
                 self.backpropagation(delta)
                 a = x_batch.transpose()
-                self.update_network(a, x_batch.shape[0])
+                self.update_network(x_batch.shape[0])
 
                 batch_correct_predictions = (y_batch.argmax(axis=1) == pred).sum()
                 # batch_accuracy = np.divide(batch_correct_predictions, float(y.shape[0])) * 100
@@ -99,7 +99,7 @@ class NeuralNetworkClassifier:
         acc = np.divide(acc, x.shape[1])
         return err, acc
 
-    def update_network(self, a, batch_size):
+    def update_network(self, batch_size):
         """Updates the network weights.
 
         :param a: network output.
@@ -107,8 +107,7 @@ class NeuralNetworkClassifier:
         :return:
         """
         for layer in self.layers:
-            layer.weights_update(a, self.alpha, self.l2_lambda, batch_size)
-            a = layer.a
+            layer.weights_update(self.alpha, self.l2_lambda, batch_size)
 
     def backpropagation(self, delta):
         """propagate the error through the network.
@@ -259,7 +258,7 @@ class Layer:
         else:
             mask = (1 - self.dropout_rate)
         a = a * mask
-        self.z, self.a, self.mask = z, a, mask
+        self.prev_a ,self.z, self.a, self.mask = a_prev, z, a, mask
         return self.a
 
     def backward(self, da):
@@ -283,10 +282,10 @@ class Layer:
         """
         return np.dot(self.theta.T, self.delta)
     
-    def weights_update(self, previous_layer_output, learning_rate, l2_lambda, batch_size):
+    def weights_update(self, learning_rate, l2_lambda, batch_size):
         """Update the layer weights and bias"""
-        theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
-        dc_dtheta = np.dot(previous_layer_output, delta.T).transpose()
+        prev_a, theta, b, delta, alpha = self.prev_a, self.theta, self.b, self.delta, learning_rate
+        dc_dtheta = np.dot(prev_a, delta.T).transpose()
         dc_dtheta = np.divide(1, batch_size) * dc_dtheta
         new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
         b_prime = np.sum(delta, axis=1).reshape(b.shape)
