@@ -262,17 +262,17 @@ class Layer:
         self.z, self.a, self.mask = z, a, mask
         return self.a
 
-    def backward(self, delta):
+    def backward(self, da):
         """Calculate the delta value of the layer.
 
         :param delta:
         :return: current layer delta.
         """
-        self.delta = delta * self.mask * self.activation_derivative(self.z)
+        self.delta = da * self.mask * self.activation_derivative(self.z)
         
-        pre_layer_delta = self.compute_previous_da()
+        prev_da = self.compute_previous_da()
         
-        return pre_layer_delta
+        return prev_da
 
     def compute_previous_da(self):
         """
