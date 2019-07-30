@@ -31,3 +31,41 @@ def backward_conv2d(x, dout, kernel):
         for j in range(k_w):
             dw[i, j] = padded_x[i:h+i, j:w+j].reshape(-1, ).dot(padded_dout[i:h+i, j:w+j].reshape(-1, ))
     return dx, dw
+
+def backward_conv3d(x, dout, kernel):
+    assert x.ndim == kernel.ndim
+    dx_accum, dw_accum, db_accum = [], [], []
+    for ch, k_c in zip(x, kernel):
+        dx, dw = backward_conv2d(ch, dout, k_c)
+        dx_accum.append(dx)
+        dw_accum.append(dw)
+    dx = np.stack(dx_accum, axis=0)
+    dw = np.stack(dw_accum, axis=0)
+    db = dout.sum()
+    return dx, dw, db
+
+def backward_conv4d(x, dout, seq_kernels):
+    dx_accum, dw_accum, db_accum = [], [], []
+    for kernel, kernel_dout in zip(seq_kernels, dout):
+        dx, dw, db = backward_conv3d(x, kernel_dout, kernel)
+        dx_accum.append(dx)
+        dw_accum.append(dw)
+        db_accum.append(db)
+    dx = np.stack(dx_accum, axis=0).sum(axis=0)
+    dw = np.stack(dw_accum, axis=0)
+    db = np.stack(db_accum, axis=0)
+    return dx, dw, db
+
+def backward_conv5d(x, dout, seq_kernels):
+    assert x.ndim == dout.ndim
+    assert x.shape[0] == dout.shape[0]
+    dx_accum, dw_accum, db_accum = [], [], []
+    for example, error in zip(x, dout):
+        dx, dw, db = backward_conv4d(example, error, seq_kernels)
+        dx_accum.append(dx)
+        dw_accum.append(dw)
+        db_accum.append(db)
+    dx = np.stack(dx_accum, axis=0)
+    dw = np.stack(dw_accum, axis=0).sum(axis=0)
+    db = np.stack(db_accum, axis=0).sum(axis=0)
+    return dx, dw, db

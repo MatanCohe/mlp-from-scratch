@@ -16,6 +16,13 @@ from cs231n import layers
 from convolution import convolution, backword
 
     
+@pytest.fixture
+def sample_data():
+    data_point_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data_point.csv')
+    x = pd.read_csv(data_point_path, header=None).values
+    y, x = x[:, :1], x[:, 1:]
+    x = x.reshape(3, 32, 32)    
+    return x
 
 @given(arrays(np.float,
               array_shapes(min_dims=2, max_dims=2, 
@@ -48,10 +55,14 @@ def test_back_conv2d(sample_data):
     assert np.allclose(dw, expected_dw)
     assert np.allclose(dx, expected_dx)
 
-@pytest.fixture
-def sample_data():
-    data_point_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data_point.csv')
-    x = pd.read_csv(data_point_path, header=None).values
-    y, x = x[:, :1], x[:, 1:]
-    x = x.reshape(3, 32, 32)    
-    return x
+
+def test_back_conv_end_to_end(sample_data):
+    new_x = np.expand_dims(sample_data, axis=0)
+    kernel = np.ones((1, 3, 3, 3))
+    out, cache = layers.conv_forward_naive(new_x, kernel, np.array([0]), 
+                                           {'pad': 1, 'stride': 1})
+    expected_dx, expected_dw, expected_db = layers.conv_backward_naive(np.ones((1, 1, 32, 32)), cache)
+    dx, dw, db = backword.backward_conv5d(new_x, np.ones((1, 1, 32, 32)), kernel)
+    assert np.allclose(expected_dx, dx)
+    assert np.allclose(expected_dw, dw)
+    assert np.allclose(expected_db, db)
