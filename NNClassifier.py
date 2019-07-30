@@ -51,10 +51,8 @@ class NeuralNetworkClassifier:
                 pred = a.argmax(axis=0)
                 err = self.calculate_loss(a, label)
                 delta = self.calculate_delta(a, label, layer)
-                layer.delta = delta
                 curr_epoch_err += err
-                theta = layer.theta
-                self.backpropagation(delta, theta)
+                self.backpropagation(delta)
                 a = x_batch.transpose()
                 self.update_network(a, x_batch.shape[0])
 
@@ -112,15 +110,18 @@ class NeuralNetworkClassifier:
             layer.weights_update(a, self.alpha, self.l2_lambda, batch_size)
             a = layer.a
 
-    def backpropagation(self, delta, theta):
+    def backpropagation(self, delta):
         """propagate the error through the network.
 
         :param delta: output delta.
         :param theta: last layer weights.
         :return: None
         """
+        output_layer = self.layers[-1]
+        output_layer.delta = delta
+        da = output_layer.compute_previous_da()
         for layer in reversed(self.layers[:-1]):
-            delta, theta = layer.backward(theta, delta), layer.theta
+            da = layer.backward(da)
 
     def calculate_loss(self, a, label):
         """Calculate the loss value of a given prediction.
@@ -261,18 +262,27 @@ class Layer:
         self.z, self.a, self.mask = z, a, mask
         return self.a
 
-    def backward(self, next_layer_weights, next_layer_delta):
+    def backward(self, delta):
         """Calculate the delta value of the layer.
 
-        :param next_layer_weights:
-        :param next_layer_delta:
+        :param delta:
         :return: current layer delta.
         """
-        delta = np.dot(next_layer_weights.T, next_layer_delta)
-        delta = delta * self.mask * self.activation_derivative(self.z)
-        self.delta = delta
-        return delta
+        self.delta = delta * self.mask * self.activation_derivative(self.z)
+        
+        pre_layer_delta = self.compute_previous_da()
+        
+        return pre_layer_delta
 
+    def compute_previous_da(self):
+        """
+        Compute the dE/da gradient.
+        
+        return:
+            dE/da gradient.
+        """
+        return np.dot(self.theta.T, self.delta)
+    
     def weights_update(self, previous_layer_output, learning_rate, l2_lambda, batch_size):
         """Update the layer weights and bias"""
         theta, b, delta, alpha = self.theta, self.b, self.delta, learning_rate
