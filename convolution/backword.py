@@ -15,13 +15,11 @@ def backward_conv2d(x, dout, kernel):
     Returns a tuple of:
     - dx: Gradient with respect to x
     - dw: Gradient with respect to w
-    - db: Gradient with respect to b
      """
     assert x.shape == dout.shape
     assert x.ndim == kernel.ndim
     flipped_kernel = np.flipud(np.fliplr(kernel))
     dx = convolution.conv2d(dout, flipped_kernel)
-    db = dout.sum()
     h, w = dout.shape
     k_h, k_w = kernel.shape
     dw = np.zeros_like(kernel)
@@ -32,4 +30,4 @@ def backward_conv2d(x, dout, kernel):
     for i in range(k_h):
         for j in range(k_w):
             dw[i, j] = padded_x[i:h+i, j:w+j].reshape(-1, ).dot(padded_dout[i:h+i, j:w+j].reshape(-1, ))
-    return dx, dw, db
+    return dx, dw
