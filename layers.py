@@ -38,7 +38,7 @@ class Conv2Linear:
     
 
 
-def MaxPool2d:
+class MaxPool2d:
     """
     Maxpool layer that works on square blocks and no overlap.
     """
@@ -98,3 +98,4 @@ def MaxPool2d:
     
     def weight_update(self):
         pass
+
