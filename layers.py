@@ -1,11 +1,12 @@
 import numpy as np 
-    
+from convolution import convolution, backword
+
 class Conv2Linear:
     """
     An intermidate layer to transform convolutional layers data into Linear layers data.
     """
     
-    def forward(self, previous_layer_output):
+    def forward(self, previous_layer_output, is_training=False):
         """
         Reshape the (N, C, H, W) input into (C*H*W, N)
         
@@ -33,7 +34,7 @@ class Conv2Linear:
         """
         return da.transpose().reshape(self.N, self.C, self.H, self.W)
         
-    def weight_update(self):
+    def weights_update(self, learning_rate, l2_lambda, batch_size):
         pass
     
 
@@ -47,9 +48,9 @@ class MaxPool2d:
         """
         Construct the MaxPool layer with with the given size.
         """
-        self.h, self.w = height, width
+        self.h, self.w = size, size
     
-    def forward(self, previous_layer_output):
+    def forward(self, previous_layer_output, is_training=False):
         """
         Apply maxpool over the previous_layer_output.
         
@@ -60,17 +61,17 @@ class MaxPool2d:
         - out: pooled output of shape (N, C, H/size, W/size)
         """
         N, C, H, W = previous_layer_output.shape
-        pool_height, pool_width = self.size, self.size
+        pool_height, pool_width = self.h, self.w
         
         assert pool_height == pool_width, 'Invalid pool params'
         assert H % pool_height == 0
         assert W % pool_height == 0
-        x_reshaped = previous_layer_output.reshape(N, C, H / pool_height, pool_height, 
-                                                   W / pool_width, pool_width)
+        x_reshaped = previous_layer_output.reshape(N, C, int(H / pool_height), pool_height, 
+                                                   int(W / pool_width), pool_width)
         out = x_reshaped.max(axis=3).max(axis=4)
 
-        self.prev_a, self.a_reshaped, self.out = x, x_reshaped, out
-    return out, cache
+        self.prev_a, self.a_reshaped, self.out = previous_layer_output, x_reshaped, out
+        return out
     
     def backward(self, da):
         """
@@ -96,6 +97,25 @@ class MaxPool2d:
 
         return dx
     
-    def weight_update(self):
+    def weights_update(self, learning_rate, l2_lambda, batch_size):
         pass
 
+
+class Conv2d:
+    
+    def __init__(self, kernels, bias, activation_function, activation_function_derivative):
+        self.kernels, self.b = kernels, bias 
+        self.activation = activation_function
+        self.activation_derivative = activation_function_derivative
+    
+    def forward(self, previous_layer_output, is_training=False):
+        self.prev_a = previous_layer_output
+        return convolution.conv4d(previous_layer_output, self.kernels)
+    
+    def backward(self, da):
+        new_da, self.dw, self.db = backword.backward_conv5d(self.prev_a, da, self.kernels)
+        return new_da
+    
+    def weights_update(self, learning_rate, l2_lambda, batch_size):
+        self.kernels = self.kernels - learning_rate * self.dw
+        self.b = self.b - learning_rate * self.db
