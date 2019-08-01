@@ -34,26 +34,22 @@ def conv3d(x, kernel):
     accum = list()
     for dim, (c_x, c_k) in enumerate(zip(x, kernel)):
         accum.append(conv2d(c_x, c_k))
-    res = np.stack(accum, axis=0).sum(axis=0)
-    return res
+    res = np.sum(accum, axis=0)
+    res3d = np.expand_dims(res, axis=0)
+    return res3d
 
 
 
 def conv4d(x, seq_kernels):
+    # TODO: Add bias.
     assert x.ndim == seq_kernels.ndim
     accum = list()
     for example in x:
         feature_maps = list()
         for kernel in seq_kernels:
             feature_maps.append(conv3d(example, kernel))
-        if len(feature_maps) < 2:
-            accum.append(np.array(feature_maps))
-        else:
-            accum.append(np.concatenate(feature_maps, axis=0))
-    if len(accum) < 2:
-        out = np.array(accum)
-    else:
-        out = np.concatenate(accum, axis=0)
+        accum.append(np.concatenate(feature_maps, axis=0))
+    out = np.array(accum)
     assert out.shape[0] == x.shape[0]
     return out
         

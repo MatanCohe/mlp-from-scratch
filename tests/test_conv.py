@@ -41,7 +41,19 @@ def test_nconv(sample_data):
     kernel = np.ones((1, 3, 3, 3))
     expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
     res = convolution.conv4d(new_x, kernel)
-    assert np.allclose(res, expected)
+    np.testing.assert_allclose(res, expected)
+    kernel = np.ones((2 ,3, 3, 3))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel)
+    np.testing.assert_allclose(res, expected)
+    new_x = np.vstack([new_x, new_x])
+    kernel = np.ones((1, 3, 3, 3))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel)
+    np.testing.assert_allclose(res, expected)
+    
+    
+    
 
 def test_back_conv2d(sample_data):
     new_x = np.expand_dims(sample_data, axis=0)
