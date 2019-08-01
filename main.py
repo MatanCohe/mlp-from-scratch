@@ -3,12 +3,12 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from NNClassifier import NeuralNetworkClassifier, Layer
 from functions import relu_activation
 from functions import column_wise_softmax
 
-import pandas as pd
 
 learning_rate = 0.01
 loss_func = 'ce'
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     std = TRAIN.values[:, 1:].std()
     standardize_data = lambda x: np.divide(x - mean, std)
 
-    x = standardize_data(TRAIN.values[:, 1:]).astype(np.float64)
+    x = standardize_data(TRAIN.values[:40, 1:]).reshape(-1, 1, 3, 32, 32).astype(np.float64)
     y = TRAIN.values[:, 0] - 1
     y = pd.get_dummies(y).values
     print('train data was read!')
@@ -47,17 +47,22 @@ if __name__ == '__main__':
     # read validation data
     DEV = pd.read_csv(dev_file, header=None)
 
-    dev_x = standardize_data(DEV.values[:, 1:]).astype(np.float64)
+    dev_x = standardize_data(DEV.values[:, 1:]).reshape(-1, 3, 32, 32).astype(np.float64)
     dev_y = DEV.values[:, 0]
     dev_y = pd.get_dummies(dev_y).values
     print('dev data was read!')
 
     # create the model
-    l1 = Layer(weights_matrix=generate_weights(256, input_vector_dim), bias=generate_weights(256, 1),
+    import layers
+    conv1 = layers.Conv2d(kernels=np.random.uniform(-0.5, 0.5, size=(1, 3, 3, 3)), bias=np.array([0]),
+                          activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
+    pool = layers.MaxPool2d(2)
+    flatten = layers.Conv2Linear()
+    l1 = Layer(weights_matrix=generate_weights(256, 256), bias=generate_weights(256, 1),
                activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative,dropout_rate=dropout_rate)
     l2 = Layer(weights_matrix=generate_weights(NUMBER_OF_LABELS, 256), bias=generate_weights(NUMBER_OF_LABELS, 1),
                activation_function=column_wise_softmax, activation_function_derivative=None)
-    network = NeuralNetworkClassifier(layers=[l1, l2], learning_rate=learning_rate, loss_function=loss_func, l2_lambda=regularization_lambda, noise_type='gauss')
+    network = NeuralNetworkClassifier(layers=[conv1, pool, flatten, l1, l2], learning_rate=learning_rate, loss_function=loss_func, l2_lambda=regularization_lambda, noise_type='gauss')
     # train
     print('about to train now...')
     train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)

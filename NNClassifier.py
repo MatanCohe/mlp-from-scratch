@@ -45,7 +45,8 @@ class NeuralNetworkClassifier:
             for x_batch, y_batch in self.split_to_batches(train_data, batch_size):
                 if self.noise_type:
                     self.noise_data(x_batch)
-                a = x_batch.transpose()
+                # a = x_batch.transpose()
+                a = x_batch
                 label = y_batch.transpose()
                 a, layer = self.forward_propagation(a, True)
                 pred = a.argmax(axis=0)
@@ -53,7 +54,6 @@ class NeuralNetworkClassifier:
                 delta = self.calculate_delta(a, label, layer)
                 curr_epoch_err += err
                 self.backpropagation(delta)
-                a = x_batch.transpose()
                 self.update_network(x_batch.shape[0])
 
                 batch_correct_predictions = (y_batch.argmax(axis=1) == pred).sum()
@@ -65,7 +65,7 @@ class NeuralNetworkClassifier:
 
             # test the network on the validation set
             if not validation_x is None:
-                validation_error, validation_accuracy = self.validate(validation_x.T, validation_y.T)
+                validation_error, validation_accuracy = self.validate(validation_x, validation_y.T)
                 validation_errors.append(np.divide(validation_error, validation_x.shape[0]))
                 validation_acc.append(validation_accuracy)
 
