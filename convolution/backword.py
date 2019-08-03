@@ -1,7 +1,5 @@
 import numpy as np
-
-
-from convolution import convolution
+from scipy import signal
 
 def backward_conv2d(x, dout, kernel):
     """
@@ -18,18 +16,14 @@ def backward_conv2d(x, dout, kernel):
      """
     assert x.shape == dout.shape
     assert x.ndim == kernel.ndim
-    flipped_kernel = np.flipud(np.fliplr(kernel))
-    dx = convolution.conv2d(dout, flipped_kernel)
+    dx = signal.convolve2d(dout, kernel, mode='same')
     h, w = dout.shape
     k_h, k_w = kernel.shape
     dw = np.zeros_like(kernel)
     p = int(np.floor(np.divide(k_h, 2)))
     q = int(np.floor(np.divide(k_w, 2)))
     padded_x = np.pad(x, ((p, p), (q, q)), mode='constant')
-    padded_dout = np.pad(dout, ((p, p), (q, q)), mode='constant')
-    for i in range(k_h):
-        for j in range(k_w):
-            dw[i, j] = padded_x[i:h+i, j:w+j].reshape(-1, ).dot(padded_dout[i:h+i, j:w+j].reshape(-1, ))
+    dw = signal.correlate2d(padded_x, dout, mode='valid')
     return dx, dw
 
 def backward_conv3d(x, dout, kernel):
@@ -69,3 +63,4 @@ def backward_conv5d(x, dout, seq_kernels):
     dw = np.stack(dw_accum, axis=0).sum(axis=0)
     db = np.stack(db_accum, axis=0).sum(axis=0)
     return dx, dw, db
+    
