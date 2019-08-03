@@ -12,7 +12,7 @@ from functions import column_wise_softmax
 
 learning_rate = 0.01
 loss_func = 'ce'
-number_of_epochs = 150
+number_of_epochs = 1
 batch_size = 20
 NUMBER_OF_LABELS = 10
 dropout_rate = 0.50
@@ -39,16 +39,16 @@ if __name__ == '__main__':
     std = TRAIN.values[:, 1:].std()
     standardize_data = lambda x: np.divide(x - mean, std)
 
-    x = standardize_data(TRAIN.values[:40, 1:]).reshape(-1, 1, 3, 32, 32).astype(np.float64)
-    y = TRAIN.values[:, 0] - 1
+    x = standardize_data(TRAIN.values[:4000, 1:]).reshape(-1, 1, 3, 32, 32).astype(np.float64)
+    y = TRAIN.values[:4000, 0] - 1
     y = pd.get_dummies(y).values
     print('train data was read!')
 
     # read validation data
     DEV = pd.read_csv(dev_file, header=None)
 
-    dev_x = standardize_data(DEV.values[:, 1:]).reshape(-1, 3, 32, 32).astype(np.float64)
-    dev_y = DEV.values[:, 0]
+    dev_x = standardize_data(DEV.values[:400, 1:]).reshape(-1, 3, 32, 32).astype(np.float64)
+    dev_y = DEV.values[:400, 0]
     dev_y = pd.get_dummies(dev_y).values
     print('dev data was read!')
 
@@ -56,19 +56,25 @@ if __name__ == '__main__':
     import layers
     conv1 = layers.Conv2d(kernels=np.random.uniform(-0.5, 0.5, size=(1, 3, 3, 3)), bias=np.array([0]),
                           activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
+    batch_norm = layers.BatchNorm2d(np.random.uniform(-0.5, 0.5, size=(1)),
+                                    np.random.uniform(-0.5, 0.5, size=(1)),
+                                    activation_function=relu_activation.f, 
+                                    activation_function_derivative=relu_activation.derivative)
     pool = layers.MaxPool2d(2)
     flatten = layers.Conv2Linear()
     l1 = Layer(weights_matrix=generate_weights(256, 256), bias=generate_weights(256, 1),
                activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative,dropout_rate=dropout_rate)
     l2 = Layer(weights_matrix=generate_weights(NUMBER_OF_LABELS, 256), bias=generate_weights(NUMBER_OF_LABELS, 1),
                activation_function=column_wise_softmax, activation_function_derivative=None)
-    network = NeuralNetworkClassifier(layers=[conv1, pool, flatten, l1, l2], learning_rate=learning_rate, loss_function=loss_func, l2_lambda=regularization_lambda, noise_type='gauss')
+    network = NeuralNetworkClassifier(layers=[conv1, batch_norm,  pool, flatten, l1, l2], 
+                                      learning_rate=learning_rate, loss_function=loss_func, 
+                                      l2_lambda=regularization_lambda, noise_type='gauss')
     # train
     print('about to train now...')
     train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)
 
     TEST = pd.read_csv(test_file, header=None)
-    test_x = standardize_data(TEST.values[:, 1:].astype(np.float64))
+    test_x = standardize_data(TEST.values[:, 1:].astype(np.float64)).reshape(-1, 3, 32, 32)
     test_predict = network.predict(test_x) + 1
     np.savetxt(os.path.join(main_folder, 'output.txt'), np.array(test_predict, dtype=int), fmt='%d')
 
