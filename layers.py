@@ -110,7 +110,7 @@ class Conv2d:
     
     def forward(self, previous_layer_output, is_training=False):
         self.prev_a = previous_layer_output
-        z = convolution.conv4d(previous_layer_output, self.kernels)
+        z = convolution.conv4d(previous_layer_output, self.kernels, self.b)
         a = self.activation(z)
         self.z, self.a = z, a
         return a

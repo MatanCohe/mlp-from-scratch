@@ -31,26 +31,27 @@ def _conv2d(x, kernel):
 
 conv2d = functools.partial(signal.correlate2d, mode='same')
 
-def conv3d(x, kernel):
+def conv3d(x, kernel, bias):
     assert x.ndim == kernel.ndim == 3
     assert x.shape[0] == kernel.shape[0]
     accum = list()
     for dim, (c_x, c_k) in enumerate(zip(x, kernel)):
         accum.append(conv2d(c_x, c_k))
-    res = np.sum(accum, axis=0)
+    res = np.sum(accum, axis=0) + bias
     res3d = np.expand_dims(res, axis=0)
     return res3d
 
 
 
-def conv4d(x, seq_kernels):
+def conv4d(x, seq_kernels, seq_bias):
     # TODO: Add bias.
     assert x.ndim == seq_kernels.ndim
+    assert seq_kernels.shape[0] == seq_bias.shape[0]
     accum = list()
     for example in x:
         feature_maps = list()
-        for kernel in seq_kernels:
-            feature_maps.append(conv3d(example, kernel))
+        for kernel, bias in zip(seq_kernels, seq_bias):
+            feature_maps.append(conv3d(example, kernel, bias))
         accum.append(np.concatenate(feature_maps, axis=0))
     out = np.array(accum)
     assert out.shape[0] == x.shape[0]
