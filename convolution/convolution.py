@@ -1,6 +1,8 @@
 import numpy as np
+import functools
+from scipy import signal
 
-def conv2d(x, kernel):
+def _conv2d(x, kernel):
     """
     Computes two dimensional correlation between x and kernel.
     The output is the same shape as x.
@@ -27,6 +29,7 @@ def conv2d(x, kernel):
             out[i-p, j-q] = flat_window @ flat_kernel
     return out
 
+conv2d = functools.partial(signal.correlate2d, mode='same')
 
 def conv3d(x, kernel):
     assert x.ndim == kernel.ndim == 3
@@ -52,4 +55,3 @@ def conv4d(x, seq_kernels):
     out = np.array(accum)
     assert out.shape[0] == x.shape[0]
     return out
-        
