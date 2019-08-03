@@ -19,7 +19,7 @@ class NeuralNetworkClassifier:
         self.loss = loss_function
         self.l2_lambda = l2_lambda
         self.noise_type = noise_type
-
+    
     def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None, batch_size=1):
         """Train the classifier.
 
@@ -96,7 +96,7 @@ class NeuralNetworkClassifier:
         y_hat, layer = self.forward_propagation(x)
         err = self.calculate_loss(y_hat, y)
         acc = (y.argmax(axis=0) == y_hat.argmax(axis=0)).sum()
-        acc = np.divide(acc, x.shape[1])
+        acc = np.divide(acc, y_hat.shape[1])
         return err, acc
 
     def update_network(self, batch_size):
@@ -176,7 +176,7 @@ class NeuralNetworkClassifier:
         :param x: each row in x represents one training example
         :return: vector of labels with a row for each example.
         """
-        a, _ = self.forward_propagation(x.transpose())
+        a, _ = self.forward_propagation(x)
         a = a.transpose()
         return np.argmax(a, axis=1)
 
