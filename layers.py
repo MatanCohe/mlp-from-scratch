@@ -156,8 +156,8 @@ class BatchNorm2d:
         gamma, beta = self.gamma, self.beta
         dgamma, dbeta = self.dgamma, self.dbeta
         alpha = learning_rate
-        new_gamma = gamma - dgamma * alpha
-        new_beta = beta - dbeta * alpha
+        new_gamma = gamma - np.divide(dgamma, batch_size) * alpha
+        new_beta = beta - np.divide(dbeta, batch_size) * alpha
         
         self.gamma, self.beta = new_gamma, new_beta
     
