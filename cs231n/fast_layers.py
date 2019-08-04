@@ -3,9 +3,9 @@ try:
   from cs231n.im2col_cython import col2im_cython, im2col_cython
   from cs231n.im2col_cython import col2im_6d_cython
 except ImportError:
-  print 'run the following from the cs231n directory and try again:'
-  print 'python setup.py build_ext --inplace'
-  print 'You may also need to restart your iPython kernel'
+  print('run the following from the cs231n directory and try again:')
+  print('python setup.py build_ext --inplace')
+  print('You may also need to restart your iPython kernel')
 
 from cs231n.im2col import *
 
@@ -16,6 +16,7 @@ def conv_forward_im2col(x, w, b, conv_param):
   based on im2col and col2im.
   """
   N, C, H, W = x.shape
+  N, C, H, W = map(int, x.shape)
   num_filters, _, filter_height, filter_width = w.shape
   stride, pad = conv_param['stride'], conv_param['pad']
 
@@ -24,8 +25,8 @@ def conv_forward_im2col(x, w, b, conv_param):
   assert (H + 2 * pad - filter_height) % stride == 0, 'height does not work'
 
   # Create output
-  out_height = (H + 2 * pad - filter_height) / stride + 1
-  out_width = (W + 2 * pad - filter_width) / stride + 1
+  out_height = int((H + 2 * pad - filter_height) / stride + 1)
+  out_width = int((W + 2 * pad - filter_width) / stride + 1)
   out = np.zeros((N, num_filters, out_height, out_width), dtype=x.dtype)
 
   # x_cols = im2col_indices(x, w.shape[2], w.shape[3], pad, stride)

@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 
-
+# from tests import profile
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
 
@@ -19,7 +19,7 @@ class NeuralNetworkClassifier:
         self.loss = loss_function
         self.l2_lambda = l2_lambda
         self.noise_type = noise_type
-    
+    # @profile.do_cprofile
     def train(self, x, y, number_of_epochs, validation_x=None, validation_y=None, batch_size=1):
         """Train the classifier.
 

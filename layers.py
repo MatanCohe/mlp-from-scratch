@@ -125,7 +125,7 @@ class Conv2d:
         self.kernels = self.kernels - learning_rate * self.dw
         self.b = self.b - learning_rate * self.db
         
-        
+from cs231n import fast_layers
 class BatchNorm2d:
     
     def __init__(self, gamma, beta, activation_function, activation_function_derivative):
@@ -192,4 +192,31 @@ class BatchNorm2d:
         self.dgamma, self.dbeta = dgamma, dbeta
 
         return dX
+
+
+class FastConv:
     
+    def __init__(self, kernels, bias, activation_function, activation_function_derivative):
+        self.kernels, self.b = kernels, bias 
+        self.activation = activation_function
+        self.activation_derivative = activation_function_derivative
+        self.params = {
+            'pad': 1, 
+            'stride': 1,
+        }
+        
+        
+    def forward(self, previous_layer_output, is_training=False):
+        self.z, self.cache = fast_layers.conv_forward_im2col(previous_layer_output, self.kernels, self.b, self.params)
+        return self.activation(self.z)
+    
+    def backward(self, da):
+        delta = da * self.activation_derivative(self.z)
+        dx, self.dw, self.db = fast_layers.conv_backward_im2col(delta, self.cache)
+        return dx
+        
+    
+    def weights_update(self, learning_rate, l2_lambda, batch_size):
+        dw, db = self.dw, self.db
+        self.kernels = self.kernels - learning_rate * np.divide(self.dw, batch_size)
+        self.b = self.b - learning_rate * np.divide(self.db, batch_size)

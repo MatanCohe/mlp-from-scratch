@@ -10,7 +10,7 @@ def main():
 
   _, cache = affine_forward(x, w, b)
   dx, dw, db = affine_backward(dout, cache)
-  print dx, dw, db
+  print(dx, dw, db)
 
 def affine_forward(x, w, b):
   """
@@ -466,7 +466,7 @@ def conv_forward_naive(x, w, b, conv_param):
       for i in range(0,H,stride):
         for j in range(0,W,stride):
           window = x_pad[n, :, i:i+HH, j:j+WW] # take all the channels
-          out[n,f,i/stride,j/stride] = np.sum(window * w[f]) + b[f] # each element is the sum (over all channels) of the dot products plus bias
+          out[n,f,int(i/stride),int(j/stride)] = np.sum(window * w[f]) + b[f] # each element is the sum (over all channels) of the dot products plus bias
 
   #############################################################################
   #                             END OF YOUR CODE                              #
@@ -510,7 +510,7 @@ def conv_backward_naive(dout, cache):
       for j in range(0,W,stride):
         for n in range(N):  # n-th input sample
           x_rf = x_pad[n, :, i:i+HH, j:j+HH]  # current receptive field
-          dy = dout[n, f, i/stride, j/stride]  # current loss
+          dy = dout[n, f, int(i/stride), int(j/stride)]  # current loss
 
           dw[f] += dy * x_rf
           db[f] += dy

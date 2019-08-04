@@ -39,18 +39,31 @@ def test_conv(x, kernel):
 def test_nconv(sample_data):
     new_x = np.expand_dims(sample_data, axis=0)
     kernel = np.ones((1, 3, 3, 3))
-    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
-    res = convolution.conv4d(new_x, kernel)
+    bias = np.zeros((1, ))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, bias, {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel, bias)
     np.testing.assert_allclose(res, expected)
+    
+    kernel = np.ones((1, 3, 3, 3))
+    bias = np.ones((1,))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, bias, {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel, bias)
+    np.testing.assert_allclose(res, expected)
+    
     kernel = np.ones((2 ,3, 3, 3))
-    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
-    res = convolution.conv4d(new_x, kernel)
+    bias = np.zeros((2, ))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, bias, {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel, bias)
     np.testing.assert_allclose(res, expected)
+    
     new_x = np.vstack([new_x, new_x])
     kernel = np.ones((1, 3, 3, 3))
-    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, np.array([0]), {'pad': 1, 'stride': 1})
-    res = convolution.conv4d(new_x, kernel)
+    bias = np.zeros((1, ))
+    expected, mem = fast_layers.conv_forward_im2col(new_x, kernel, bias, {'pad': 1, 'stride': 1})
+    res = convolution.conv4d(new_x, kernel, bias)
     np.testing.assert_allclose(res, expected)
+    
+    
     
     
     
@@ -87,4 +100,3 @@ def test_back_conv_end_to_end(sample_data):
     assert np.allclose(expected_dx, dx)
     assert np.allclose(expected_dw, dw)
     assert np.allclose(expected_db, db)
-    
