@@ -69,8 +69,8 @@ class MaxPool2d:
         x_reshaped = previous_layer_output.reshape(N, C, int(H / pool_height), pool_height, 
                                                    int(W / pool_width), pool_width)
         out = x_reshaped.max(axis=3).max(axis=4)
-
-        self.prev_a, self.a_reshaped, self.out = previous_layer_output, x_reshaped, out
+        if is_training:
+            self.prev_a, self.a_reshaped, self.out = previous_layer_output, x_reshaped, out
         return out
     
     def backward(self, da):
@@ -109,10 +109,10 @@ class Conv2d:
         self.activation_derivative = activation_function_derivative
     
     def forward(self, previous_layer_output, is_training=False):
-        self.prev_a = previous_layer_output
         z = convolution.conv4d(previous_layer_output, self.kernels, self.b)
         a = self.activation(z)
-        self.z, self.a = z, a
+        if is_training:
+            self.prev_a, self.z, self.a = previous_layer_output, z, a
         return a
     
     def backward(self, da):
@@ -137,10 +137,11 @@ class BatchNorm2d:
         self.prev_a = previous_layer_output
         N, C, H, W = previous_layer_output.shape
         reshaped = previous_layer_output.reshape(N, -1)
-        X = self._batchnorm_forward(reshaped)
+        X, norm, mu, var = self._batchnorm_forward(reshaped)
         z = X.reshape(N, C, H, W)
         a = self.activation(z)
-        self.z, self.a = z, a
+        if is_training:
+            self.z, self.a, self.X, self.X_norm, self.mu, self.var = z, a, reshaped, norm, mu, var
         return a
         
     
@@ -169,9 +170,8 @@ class BatchNorm2d:
 
         X_norm = (X - mu) / np.sqrt(var + 1e-8)
         out = gamma * X_norm + beta
-        self.X, self.X_norm, self.mu, self.var = X, X_norm, mu, var
 
-        return out
+        return out, X_norm, mu, var
     
     def _batchnorm_backword(self, da):
         X, X_norm, mu, var, gamma, beta = self.X, self.X_norm, self.mu, self.var, self.gamma, self.beta
@@ -207,8 +207,10 @@ class FastConv:
         
         
     def forward(self, previous_layer_output, is_training=False):
-        self.z, self.cache = fast_layers.conv_forward_im2col(previous_layer_output, self.kernels, self.b, self.params)
-        return self.activation(self.z)
+        z, cache = fast_layers.conv_forward_im2col(previous_layer_output, self.kernels, self.b, self.params)
+        if is_training:
+            self.z, self.cache = z, cache
+        return self.activation(z)
     
     def backward(self, da):
         delta = da * self.activation_derivative(self.z)

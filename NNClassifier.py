@@ -258,8 +258,9 @@ class Layer:
         else:
             mask = (1 - self.dropout_rate)
         a = a * mask
-        self.prev_a ,self.z, self.a, self.mask = a_prev, z, a, mask
-        return self.a
+        if is_training:
+            self.prev_a ,self.z, self.a, self.mask = a_prev, z, a, mask
+        return a
 
     def backward(self, da):
         """Calculate the delta value of the layer.
