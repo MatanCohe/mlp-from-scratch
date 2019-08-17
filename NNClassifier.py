@@ -283,14 +283,21 @@ class Layer:
         """
         return np.dot(self.theta.T, self.delta)
     
-    def weights_update(self, learning_rate, l2_lambda, batch_size):
+    def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
         """Update the layer weights and bias"""
         prev_a, theta, b, delta, alpha = self.prev_a, self.theta, self.b, self.delta, learning_rate
         dc_dtheta = np.dot(prev_a, delta.T).transpose()
-        dc_dtheta = np.divide(1, batch_size) * dc_dtheta
-        new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
+        # dc_dtheta = np.divide(1, batch_size) * dc_dtheta
+
+        # new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
         b_prime = np.sum(delta, axis=1).reshape(b.shape)
-        b_prime = b_prime * np.divide(1, batch_size)
-        new_b = b - alpha * b_prime
+        # b_prime = b_prime * np.divide(1, batch_size)
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dc_dtheta)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(b_prime)
+        vw = beta * prev_vw + (1-beta) * dc_dtheta
+        vb = beta * prev_vd + (1-beta) * b_prime
+        new_theta = theta - alpha * vw
+        new_b = b - alpha * vb
         self.theta, self.b = new_theta, new_b
+        self.vw, self.vb = vw, vb
 
