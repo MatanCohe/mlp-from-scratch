@@ -153,14 +153,19 @@ class BatchNorm2d:
         dx_reshaped = dX.reshape(N, C, H, W)
         return dx_reshaped
     
-    def weights_update(self, learning_rate, l2_lambda, batch_size):
-        gamma, beta = self.gamma, self.beta
+    def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
         dgamma, dbeta = self.dgamma, self.dbeta
         alpha = learning_rate
-        new_gamma = gamma - np.divide(dgamma, batch_size) * alpha
-        new_beta = beta - np.divide(dbeta, batch_size) * alpha
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dgamma)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(dbeta)
+        vw = beta * prev_vw + (1-beta) * dgamma 
+        vb = beta * prev_vd + (1-beta) * dbeta
+        new_gamma = self.gamma - alpha * vw
+        new_beta = self.beta - alpha * vb
         
         self.gamma, self.beta = new_gamma, new_beta
+        self.vw, self.vb = vw, vb
+        self.dgamma, self.dbeta = None, None
     
     
     def _batchnorm_forward(self, X):
@@ -218,7 +223,13 @@ class FastConv:
         return dx
         
     
-    def weights_update(self, learning_rate, l2_lambda, batch_size):
+    def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
         dw, db = self.dw, self.db
-        self.kernels = self.kernels - learning_rate * np.divide(self.dw, batch_size)
-        self.b = self.b - learning_rate * np.divide(self.db, batch_size)
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        vw = beta * prev_vw + (1-beta) * dw 
+        vb = beta * prev_vd + (1-beta) * db
+        self.kernels = self.kernels - learning_rate * vw
+        self.b = self.b - learning_rate * vb
+        self.vw, self.vb = vw, vb
+        self.dw, self.db = None, None
