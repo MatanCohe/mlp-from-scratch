@@ -120,10 +120,16 @@ class Conv2d:
         new_da, self.dw, self.db = backword.backward_conv5d(self.prev_a, da, self.kernels)
         return new_da
     
-    def weights_update(self, learning_rate, l2_lambda, batch_size):
+    def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
         dw, db = self.dw, self.db
-        self.kernels = self.kernels - learning_rate * self.dw
-        self.b = self.b - learning_rate * self.db
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        vw = beta * prev_vw + (1-beta) * dw 
+        vb = beta * prev_vd + (1-beta) * db
+        self.kernels = self.kernels - learning_rate * vw - l2_lambda * learning_rate * self.kernels
+        self.b = self.b - learning_rate * vb
+        self.vw, self.vb = vw, vb
+        self.dw, self.db = None, None
         
 from cs231n import fast_layers
 class BatchNorm2d:
@@ -160,7 +166,7 @@ class BatchNorm2d:
         prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(dbeta)
         vw = beta * prev_vw + (1-beta) * dgamma 
         vb = beta * prev_vd + (1-beta) * dbeta
-        new_gamma = self.gamma - alpha * vw
+        new_gamma = self.gamma - alpha * vw - l2_lambda * alpha * self.gamma
         new_beta = self.beta - alpha * vb
         
         self.gamma, self.beta = new_gamma, new_beta
@@ -229,7 +235,7 @@ class FastConv:
         prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
         vw = beta * prev_vw + (1-beta) * dw 
         vb = beta * prev_vd + (1-beta) * db
-        self.kernels = self.kernels - learning_rate * vw
+        self.kernels = self.kernels - learning_rate * vw - l2_lambda * learning_rate * self.kernels
         self.b = self.b - learning_rate * vb
         self.vw, self.vb = vw, vb
         self.dw, self.db = None, None

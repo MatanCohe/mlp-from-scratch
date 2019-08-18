@@ -300,7 +300,7 @@ class Layer:
         prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(b_prime)
         vw = beta * prev_vw + (1-beta) * dc_dtheta
         vb = beta * prev_vd + (1-beta) * b_prime
-        new_theta = theta - alpha * vw
+        new_theta = theta - alpha * vw - l2_lambda * alpha * theta
         new_b = b - alpha * vb
         self.theta, self.b = new_theta, new_b
         self.vw, self.vb = vw, vb
