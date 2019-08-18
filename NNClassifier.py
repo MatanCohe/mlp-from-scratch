@@ -5,7 +5,7 @@ import numpy as np
 class NeuralNetworkClassifier:
     """This class represents a Neural Network classifier"""
 
-    def __init__(self, layers, learning_rate, loss_function, l2_lambda=0, noise_type=None):
+    def __init__(self, layers, learning_rate, loss_function, l2_lambda=0, noise_type=None, lr_decay_rate=1, lr_decay_schedule=10):
         """Create a neural network classifier.
 
         :param l2_lambda:
@@ -15,7 +15,10 @@ class NeuralNetworkClassifier:
 
         :return: A neural network with the specified requirements.
         """
-        self.layers, self.alpha = layers, learning_rate
+        self.alpha0 = learning_rate
+        self.alpha_decay_rate = lr_decay_rate
+        self.alpha_decay_schedule = lr_decay_schedule
+        self.layers = layers
         self.loss = loss_function
         self.l2_lambda = l2_lambda
         self.noise_type = noise_type
@@ -42,6 +45,7 @@ class NeuralNetworkClassifier:
             np.random.shuffle(train_data)
             curr_epoch_err = 0
             epoch_correct_predictions = 0
+            self.alpha = self.alpha0 * np.power(self.alpha_decay_rate, np.floor(np.divide(epoch+1, self.alpha_decay_schedule)))
             for x_batch, y_batch in self.split_to_batches(train_data, batch_size):
                 if self.noise_type:
                     self.noise_data(x_batch)
