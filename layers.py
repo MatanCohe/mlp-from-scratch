@@ -239,3 +239,23 @@ class FastConv:
         self.b = self.b - learning_rate * vb
         self.vw, self.vb = vw, vb
         self.dw, self.db = None, None
+        
+class Dropout:
+    
+    def __init__(self, dropout_rate):
+        self.dropout_rate = dropout_rate
+        
+    def forward(self, previous_layer_output, is_training=False):
+        if is_training:
+            mask = np.random.rand(*previous_layer_output) < (1 - self.dropout_rate)
+        else:
+            mask = (1 - self.dropout_rate)
+        return mask * previous_layer_output
+    
+    def backward(self, da):
+        return self.mask * da
+        
+    
+    def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
+        self.mask = None
+        
