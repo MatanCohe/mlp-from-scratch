@@ -161,17 +161,33 @@ class BatchNorm2d:
     
     def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
         dgamma, dbeta = self.dgamma, self.dbeta
-        alpha = learning_rate
-        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dgamma)
-        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(dbeta)
-        vw = beta * prev_vw + (1-beta) * dgamma 
-        vb = beta * prev_vd + (1-beta) * dbeta
-        new_gamma = self.gamma - alpha * vw - l2_lambda * alpha * self.gamma
-        new_beta = self.beta - alpha * vb
         
-        self.gamma, self.beta = new_gamma, new_beta
-        self.vw, self.vb = vw, vb
+        self.gamma, self.beta = self.rmsprop(dgamma, dbeta, learning_rate, l2_lambda, batch_size, beta)
         self.dgamma, self.dbeta = None, None
+    
+    def sgd_with_momentum_update(self, dw, db, learning_rate, l2_lambda, batch_size, beta=0.9):
+        theta, b, alpha = self.gamma, self.beta, learning_rate
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        vw = beta * prev_vw + (1-beta) * dw
+        vb = beta * prev_vd + (1-beta) * db
+        new_w = theta - alpha * vw - l2_lambda * alpha * theta
+        new_b = b - alpha * vb
+        self.vw, self.vb = vw, vb
+        return new_w, new_b
+        
+    def rmsprop(self, dw, db, learning_rate, l2_lambda, batch_size, beta=0.9):
+        theta, b, alpha = self.gamma, self.beta, learning_rate
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        eps = 1e-8
+        vw = beta * prev_vw + (1-beta) * dw * dw
+        vb = beta * prev_vd + (1-beta) * db * db
+        new_w = theta - np.divide(alpha, np.sqrt(vw+eps)) * dw
+        new_b = b - np.divide(alpha, np.sqrt(vb+eps)) * db
+        self.vw, self.vb = vw, vb
+        return new_w, new_b
+        
     
     
     def _batchnorm_forward(self, X):
@@ -231,14 +247,31 @@ class FastConv:
     
     def weights_update(self, learning_rate, l2_lambda, batch_size, beta=0.9):
         dw, db = self.dw, self.db
+        self.kernels, self.b = self.rmsprop(dw, db, learning_rate, l2_lambda, batch_size, beta=0.9)
+        self.dw, self.db = None, None
+
+    def sgd_with_momentum_update(self, dw, db, learning_rate, l2_lambda, batch_size, beta=0.9):
+        theta, b, alpha = self.kernels, self.b, learning_rate
         prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
         prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
-        vw = beta * prev_vw + (1-beta) * dw 
+        vw = beta * prev_vw + (1-beta) * dw
         vb = beta * prev_vd + (1-beta) * db
-        self.kernels = self.kernels - learning_rate * vw - l2_lambda * learning_rate * self.kernels
-        self.b = self.b - learning_rate * vb
+        new_w = theta - alpha * vw - l2_lambda * alpha * theta
+        new_b = b - alpha * vb
         self.vw, self.vb = vw, vb
-        self.dw, self.db = None, None
+        return new_w, new_b
+        
+    def rmsprop(self, dw, db, learning_rate, l2_lambda, batch_size, beta=0.9):
+        theta, b, alpha = self.kernels, self.b, learning_rate
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        eps = 1e-8
+        vw = beta * prev_vw + (1-beta) * dw * dw
+        vb = beta * prev_vd + (1-beta) * db * db
+        new_w = theta - np.divide(alpha, np.sqrt(vw+eps)) * dw
+        new_b = b - np.divide(alpha, np.sqrt(vb+eps)) * db
+        self.vw, self.vb = vw, vb
+        return new_w, new_b
         
 class Dropout:
     

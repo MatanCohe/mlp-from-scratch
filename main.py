@@ -4,8 +4,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy import stats
 
 from NNClassifier import NeuralNetworkClassifier, Layer
+import layers
 from functions import relu_activation
 from functions import column_wise_softmax
 
@@ -15,9 +17,11 @@ loss_func = 'ce'
 number_of_epochs = 150
 batch_size = 20
 NUMBER_OF_LABELS = 10
-dropout_rate = 0.50
+dropout_rate = 0.4
 input_vector_dim = 3072
-regularization_lambda = 0.0001 * 10 *5
+regularization_lambda = 1e-8 # 0.0001 * 10 *5
+lr_decay_schedule = 10
+lr_decay_rate = 0.5
 
 
 def generate_weights(rows, cols):
@@ -40,8 +44,8 @@ if __name__ == '__main__':
     std = TRAIN.values[:, 1:].std()
     standardize_data = lambda x: np.divide(x - mean, std)
 
-    x = standardize_data(TRAIN.values[:, 1:]).reshape(-1, 1, 3, 32, 32).astype(np.float64)
-    y = TRAIN.values[:, 0] - 1
+    x = standardize_data(TRAIN.values[:4000, 1:]).reshape(-1, 1, 3, 32, 32).astype(np.float64)
+    y = TRAIN.values[:4000, 0] - 1
     y = pd.get_dummies(y).values
     print('train data was read!')
 
@@ -49,36 +53,42 @@ if __name__ == '__main__':
     # DEV = pd.read_csv(dev_file, header=None)
     DEV = pd.DataFrame(np.load('./bin_data/validate.npy'))
 
-    dev_x = standardize_data(DEV.values[:400, 1:]).reshape(-1, 3, 32, 32).astype(np.float64)
-    dev_y = DEV.values[:400, 0]
+    dev_x = standardize_data(DEV.values[:, 1:]).reshape(-1, 3, 32, 32).astype(np.float64)
+    dev_y = DEV.values[:, 0]
     dev_y = pd.get_dummies(dev_y).values
     print('dev data was read!')
 
     # create the model
-    import layers
-    conv1 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(2, 3, 3, 3)), bias=np.zeros((2, )),
+    conv1 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(2*3, 3, 3, 3)), bias=np.zeros((2*3, )),
                           activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
     batch_norm1 = layers.BatchNorm2d(np.random.uniform(-0.5, 0.5, size=(1)),
                                     np.random.uniform(-0.5, 0.5, size=(1)),
                                     activation_function=relu_activation.f, 
                                     activation_function_derivative=relu_activation.derivative)
     pool1 = layers.MaxPool2d(2)
-    conv2 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(4, 2, 3, 3)), bias=np.zeros((4, )),
+    conv2 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(4*3, 2*3, 3, 3)), bias=np.zeros((4*3, )),
                           activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
     batch_norm2 = layers.BatchNorm2d(np.random.uniform(-0.5, 0.5, size=(1)),
                                     np.random.uniform(-0.5, 0.5, size=(1)),
                                     activation_function=relu_activation.f, 
                                     activation_function_derivative=relu_activation.derivative)
     pool2 = layers.MaxPool2d(2)
-    conv3 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(8, 4, 3, 3)), bias=np.zeros((8, )),
+    conv3 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(8*3, 4*3, 3, 3)), bias=np.zeros((8*3, )),
                           activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
     batch_norm3 = layers.BatchNorm2d(np.random.uniform(-0.5, 0.5, size=(1)),
                                     np.random.uniform(-0.5, 0.5, size=(1)),
                                     activation_function=relu_activation.f, 
                                     activation_function_derivative=relu_activation.derivative)
     pool3 = layers.MaxPool2d(2)
+    conv4 = layers.FastConv(kernels=np.random.uniform(-0.5, 0.5, size=(16*3, 8*3, 3, 3)), bias=np.zeros((16*3, )),
+                          activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative)
+    batch_norm4 = layers.BatchNorm2d(np.random.uniform(-0.5, 0.5, size=(1)),
+                                    np.random.uniform(-0.5, 0.5, size=(1)),
+                                    activation_function=relu_activation.f, 
+                                    activation_function_derivative=relu_activation.derivative)
+    pool4= layers.MaxPool2d(2)
     flatten = layers.Conv2Linear()
-    l1 = Layer(weights_matrix=generate_weights(256, 128), bias=generate_weights(256, 1),
+    l1 = Layer(weights_matrix=generate_weights(256, 64*3), bias=generate_weights(256, 1),
                activation_function=relu_activation.f, activation_function_derivative=relu_activation.derivative,dropout_rate=dropout_rate)
     l2 = Layer(weights_matrix=generate_weights(NUMBER_OF_LABELS, 256), bias=generate_weights(NUMBER_OF_LABELS, 1),
                activation_function=column_wise_softmax, activation_function_derivative=None)
@@ -91,12 +101,16 @@ if __name__ == '__main__':
         pool2,
         conv3, 
         batch_norm3,  
-        pool3, 
+        pool3,
+        conv4, 
+        batch_norm4,  
+        pool4, 
         flatten, 
         l1, 
         l2], 
                                       learning_rate=learning_rate, loss_function=loss_func, 
-                                      l2_lambda=regularization_lambda, noise_type='gauss')
+                                      l2_lambda=regularization_lambda, noise_type='gauss', 
+                                      lr_decay_rate=lr_decay_rate, lr_decay_schedule=lr_decay_schedule)
     # train
     print('about to train now...')
     train_errors, validation_errors, train_epochs_acc, validation_acc = network.train(x, y, number_of_epochs, dev_x, dev_y, batch_size)

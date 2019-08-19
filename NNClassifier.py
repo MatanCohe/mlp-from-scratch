@@ -291,17 +291,32 @@ class Layer:
         """Update the layer weights and bias"""
         prev_a, theta, b, delta, alpha = self.prev_a, self.theta, self.b, self.delta, learning_rate
         dc_dtheta = np.dot(prev_a, delta.T).transpose()
-        # dc_dtheta = np.divide(1, batch_size) * dc_dtheta
-
-        # new_theta = theta*(1 - l2_lambda * alpha) - alpha * dc_dtheta
+        
         b_prime = np.sum(delta, axis=1).reshape(b.shape)
-        # b_prime = b_prime * np.divide(1, batch_size)
-        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dc_dtheta)
-        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(b_prime)
-        vw = beta * prev_vw + (1-beta) * dc_dtheta
-        vb = beta * prev_vd + (1-beta) * b_prime
-        new_theta = theta - alpha * vw - l2_lambda * alpha * theta
-        new_b = b - alpha * vb
-        self.theta, self.b = new_theta, new_b
-        self.vw, self.vb = vw, vb
 
+
+        self.theta, self.b = self.rmsprop(dc_dtheta, b_prime, learning_rate, l2_lambda, batch_size, beta=0.9)
+        
+        
+    def sgd_with_momentum_update(self, dw, db, learning_rate, l2_lambda, batch_size, beta=0.9):
+        theta, b, alpha = self.theta, self.b, learning_rate
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        vw = beta * prev_vw + (1-beta) * dw
+        vb = beta * prev_vd + (1-beta) * db
+        new_w = theta - alpha * vw - l2_lambda * alpha * theta
+        new_b = b - alpha * vb
+        self.vw, self.vb = vw, vb
+        return new_w, new_b
+    
+    def rmsprop(self, dw, db, learning_rate, l2_lambda, batch_size, beta=0.9):
+        theta, b, alpha = self.theta, self.b, learning_rate
+        prev_vw = self.vw if hasattr(self, 'vw') else np.zeros_like(dw)
+        prev_vd = self.vb if hasattr(self, 'vb') else np.zeros_like(db)
+        eps = 1e-8
+        vw = beta * prev_vw + (1-beta) * dw * dw
+        vb = beta * prev_vd + (1-beta) * db * db
+        new_w = theta - np.divide(alpha, np.sqrt(vw+eps)) * dw
+        new_b = b - np.divide(alpha, np.sqrt(vb+eps)) * db
+        self.vw, self.vb = vw, vb
+        return new_w, new_b
